@@ -179,8 +179,26 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
 export const insertUserSchema = createInsertSchema(users);
 export const insertServiceSchema = createInsertSchema(services).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertQuoteSchema = createInsertSchema(quotes).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
-export const insertReservationSchema = createInsertSchema(reservations).omit({ id: true, createdAt: true, updatedAt: true });
+
+// Custom invoice schema with data transformations
+export const insertInvoiceSchema = createInsertSchema(invoices)
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({
+    amount: z.union([z.string(), z.number()]).transform(val => String(val)),
+    dueDate: z.union([z.date(), z.string()]).transform(val => 
+      typeof val === 'string' ? new Date(val) : val
+    ).optional(),
+  });
+
+// Custom reservation schema with data transformations
+export const insertReservationSchema = createInsertSchema(reservations)
+  .omit({ id: true, createdAt: true, updatedAt: true })
+  .extend({
+    scheduledDate: z.union([z.date(), z.string()]).transform(val => 
+      typeof val === 'string' ? new Date(val) : val
+    ),
+  });
+
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertInvoiceCounterSchema = createInsertSchema(invoiceCounters).omit({ id: true, updatedAt: true });
 
