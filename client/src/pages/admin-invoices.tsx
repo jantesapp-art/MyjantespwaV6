@@ -15,8 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Download } from "lucide-react";
-import { generateInvoicePDF } from "@/lib/pdf-generator";
+import { Plus, Download, Tags } from "lucide-react";
+import { generateInvoicePDF, generateLabelsPDF } from "@/lib/pdf-generator";
 
 export default function AdminInvoices() {
   const { toast } = useToast();
@@ -69,6 +69,22 @@ export default function AdminInvoices() {
       email: 'client@myjantes.fr'
     };
     generateInvoicePDF(invoice, clientInfo, quote, service);
+  };
+
+  const handleDownloadLabels = async (invoice: Invoice) => {
+    try {
+      await generateLabelsPDF(invoice, 'invoice');
+      toast({
+        title: "Succès",
+        description: "Étiquettes générées avec succès",
+      });
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Échec de la génération des étiquettes",
+        variant: "destructive",
+      });
+    }
   };
 
   const createInvoiceMutation = useMutation({
@@ -191,15 +207,26 @@ export default function AdminInvoices() {
                         </p>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => handleDownloadPDF(invoice)}
-                      data-testid={`button-download-invoice-pdf-${invoice.id}`}
-                    >
-                      <Download className="h-4 w-4 mr-2" />
-                      PDF
-                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadPDF(invoice)}
+                        data-testid={`button-download-invoice-pdf-${invoice.id}`}
+                      >
+                        <Download className="h-4 w-4 mr-2" />
+                        PDF
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleDownloadLabels(invoice)}
+                        data-testid={`button-download-labels-${invoice.id}`}
+                      >
+                        <Tags className="h-4 w-4 mr-2" />
+                        Étiquettes
+                      </Button>
+                    </div>
                   </div>
                 </div>
               ))}
