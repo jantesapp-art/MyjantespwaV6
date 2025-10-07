@@ -6,6 +6,7 @@ import {
   invoices,
   reservations,
   notifications,
+  invoiceCounters,
   type User,
   type UpsertUser,
   type Service,
@@ -18,6 +19,8 @@ import {
   type InsertReservation,
   type Notification,
   type InsertNotification,
+  type InvoiceCounter,
+  type InsertInvoiceCounter,
 } from "@shared/schema";
 import { db } from "./db";
 import { eq, desc, and } from "drizzle-orm";
@@ -57,6 +60,11 @@ export interface IStorage {
   getNotifications(userId: string): Promise<Notification[]>;
   createNotification(notification: InsertNotification): Promise<Notification>;
   markNotificationAsRead(id: string): Promise<void>;
+
+  // Invoice counter operations
+  getInvoiceCounter(paymentType: "cash" | "other"): Promise<InvoiceCounter | undefined>;
+  createInvoiceCounter(counter: InsertInvoiceCounter): Promise<InvoiceCounter>;
+  updateInvoiceCounter(paymentType: "cash" | "other", currentNumber: number): Promise<InvoiceCounter>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -206,6 +214,26 @@ export class DatabaseStorage implements IStorage {
 
   async markNotificationAsRead(id: string): Promise<void> {
     await db.update(notifications).set({ isRead: true }).where(eq(notifications.id, id));
+  }
+
+  // Invoice counter operations
+  async getInvoiceCounter(paymentType: "cash" | "other"): Promise<InvoiceCounter | undefined> {
+    const [counter] = await db.select().from(invoiceCounters).where(eq(invoiceCounters.paymentType, paymentType));
+    return counter;
+  }
+
+  async createInvoiceCounter(counterData: InsertInvoiceCounter): Promise<InvoiceCounter> {
+    const [counter] = await db.insert(invoiceCounters).values(counterData).returning();
+    return counter;
+  }
+
+  async updateInvoiceCounter(paymentType: "cash" | "other", currentNumber: number): Promise<InvoiceCounter> {
+    const [counter] = await db
+      .update(invoiceCounters)
+      .set({ currentNumber, updatedAt: new Date() })
+      .where(eq(invoiceCounters.paymentType, paymentType))
+      .returning();
+    return counter;
   }
 }
 
