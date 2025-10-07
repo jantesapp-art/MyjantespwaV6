@@ -235,7 +235,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/invoices", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const validatedData = insertInvoiceSchema.parse(req.body);
+      const { mediaFiles, ...invoiceData } = req.body;
+      
+      // Validate minimum 6 images requirement
+      if (!mediaFiles || !Array.isArray(mediaFiles)) {
+        return res.status(400).json({ message: "Media files are required" });
+      }
+      
+      const imageCount = mediaFiles.filter((f: any) => f.type.startsWith('image/')).length;
+      if (imageCount < 6) {
+        return res.status(400).json({ 
+          message: `Au moins 6 images sont requises (${imageCount}/6 fournis)` 
+        });
+      }
+      
+      const validatedData = insertInvoiceSchema.parse(invoiceData);
       
       // Get quote to determine payment method
       const quote = await storage.getQuote(validatedData.quoteId);
@@ -257,6 +271,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ...validatedData,
         invoiceNumber,
       });
+      
+      // Create media entries
+      for (const file of mediaFiles) {
+        await storage.createInvoiceMedia({
+          invoiceId: invoice.id,
+          filePath: file.key,
+          fileType: file.type.startsWith('image/') ? 'image' : 'video',
+          fileName: file.name,
+        });
+      }
 
       // Create notification for client
       await storage.createNotification({

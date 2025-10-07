@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 
 interface ObjectUploaderProps {
-  onUploadComplete: (files: Array<{key: string; type: string}>) => void;
+  onUploadComplete: (files: Array<{key: string; type: string; name: string}>) => void;
   accept?: Record<string, string[]>;
   "data-testid"?: string;
 }

@@ -29,6 +29,7 @@ export default function AdminQuotes() {
   const [invoiceDialog, setInvoiceDialog] = useState<Quote | null>(null);
   const [invoiceDueDate, setInvoiceDueDate] = useState("");
   const [invoiceNotes, setInvoiceNotes] = useState("");
+  const [invoiceMediaFiles, setInvoiceMediaFiles] = useState<Array<{key: string; type: string; name: string}>>([]);
   
   const [reservationDialog, setReservationDialog] = useState<Quote | null>(null);
   const [reservationDate, setReservationDate] = useState("");
@@ -39,7 +40,7 @@ export default function AdminQuotes() {
   const [newQuoteServiceId, setNewQuoteServiceId] = useState("");
   const [newQuotePaymentMethod, setNewQuotePaymentMethod] = useState<"cash" | "other">("other");
   const [newQuoteDetails, setNewQuoteDetails] = useState("");
-  const [quoteMediaFiles, setQuoteMediaFiles] = useState<Array<{key: string; type: string}>>([]);
+  const [quoteMediaFiles, setQuoteMediaFiles] = useState<Array<{key: string; type: string; name: string}>>([]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin)) {
@@ -120,7 +121,7 @@ export default function AdminQuotes() {
   };
 
   const createInvoiceMutation = useMutation({
-    mutationFn: async (data: { quoteId: string; clientId: string; amount: string; dueDate: string; notes?: string }) => {
+    mutationFn: async (data: { quoteId: string; clientId: string; amount: string; dueDate: string; notes?: string; mediaFiles?: Array<{key: string; type: string; name: string}> }) => {
       const invoiceNumber = `INV-${Date.now()}`;
       return apiRequest("POST", "/api/admin/invoices", {
         quoteId: data.quoteId,
@@ -129,6 +130,7 @@ export default function AdminQuotes() {
         amount: parseFloat(data.amount),
         dueDate: data.dueDate,
         notes: data.notes,
+        mediaFiles: data.mediaFiles,
       });
     },
     onSuccess: () => {
@@ -139,6 +141,7 @@ export default function AdminQuotes() {
       setInvoiceDialog(null);
       setInvoiceDueDate("");
       setInvoiceNotes("");
+      setInvoiceMediaFiles([]);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/invoices"] });
     },
     onError: (error: Error) => {
@@ -182,12 +185,24 @@ export default function AdminQuotes() {
 
   const handleCreateInvoice = () => {
     if (!invoiceDialog || !invoiceDueDate) return;
+    
+    const imageCount = invoiceMediaFiles.filter(f => f.type.startsWith('image/')).length;
+    if (imageCount < 6) {
+      toast({
+        title: "Erreur",
+        description: `Au moins 6 images sont requises (${imageCount}/6)`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     createInvoiceMutation.mutate({
       quoteId: invoiceDialog.id,
       clientId: invoiceDialog.clientId,
       amount: invoiceDialog.quoteAmount || "0",
       dueDate: invoiceDueDate,
       notes: invoiceNotes,
+      mediaFiles: invoiceMediaFiles,
     });
   };
 
@@ -203,7 +218,7 @@ export default function AdminQuotes() {
   };
 
   const createNewQuoteMutation = useMutation({
-    mutationFn: async (data: { clientId: string; serviceId: string; paymentMethod: string; requestDetails?: any; mediaFiles?: Array<{key: string; type: string}> }) => {
+    mutationFn: async (data: { clientId: string; serviceId: string; paymentMethod: string; requestDetails?: any; mediaFiles?: Array<{key: string; type: string; name: string}> }) => {
       return apiRequest("POST", "/api/admin/quotes", data);
     },
     onSuccess: () => {
@@ -481,18 +496,44 @@ export default function AdminQuotes() {
                 data-testid="textarea-invoice-notes"
               />
             </div>
+            <div>
+              <Label>Images et Vidéos</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Minimum 6 images requises. Vidéos optionnelles.
+              </p>
+              <ObjectUploader
+                onUploadComplete={(files) => setInvoiceMediaFiles(files)}
+                accept={{
+                  'image/*': ['.jpg', '.jpeg', '.png', '.webp'],
+                  'video/*': ['.mp4', '.webm', '.mov']
+                }}
+                data-testid="uploader-invoice-media"
+              />
+              {invoiceMediaFiles.length > 0 && invoiceMediaFiles.filter(f => f.type.startsWith('image/')).length < 6 && (
+                <p className="text-sm text-destructive mt-2">
+                  Au moins 6 images sont requises ({invoiceMediaFiles.filter(f => f.type.startsWith('image/')).length}/6)
+                </p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setInvoiceDialog(null)}
+              onClick={() => {
+                setInvoiceDialog(null);
+                setInvoiceMediaFiles([]);
+              }}
               data-testid="button-cancel-invoice"
             >
               Annuler
             </Button>
             <Button
               onClick={handleCreateInvoice}
-              disabled={createInvoiceMutation.isPending || !invoiceDueDate}
+              disabled={
+                createInvoiceMutation.isPending || 
+                !invoiceDueDate ||
+                invoiceMediaFiles.filter(f => f.type.startsWith('image/')).length < 6
+              }
               data-testid="button-save-invoice"
             >
               {createInvoiceMutation.isPending ? "Création..." : "Créer Facture"}
