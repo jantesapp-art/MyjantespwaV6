@@ -83,6 +83,9 @@ function Router() {
                 <Route path="/admin/reservations" component={AdminReservations} />
                 <Route path="/admin/users" component={AdminUsers} />
                 <Route path="/admin/settings" component={AdminSettings} />
+                <Route path="/login">
+                  <Redirect to="/admin" />
+                </Route>
                 <Route path="/" component={AdminDashboard} />
                 <Route component={NotFound} />
               </Switch>
@@ -107,6 +110,9 @@ function Router() {
         <Switch>
           <Route path="/" component={ClientDashboard} />
           <Route path="/services" component={Services} />
+          <Route path="/login">
+            <Redirect to="/" />
+          </Route>
           <Route component={NotFound} />
         </Switch>
       </main>
