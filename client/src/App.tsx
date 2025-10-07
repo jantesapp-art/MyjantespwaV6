@@ -22,6 +22,7 @@ import AdminServices from "@/pages/admin-services";
 import AdminInvoices from "@/pages/admin-invoices";
 import AdminReservations from "@/pages/admin-reservations";
 import AdminSettings from "@/pages/admin-settings";
+import AdminUsers from "@/pages/admin-users";
 
 function Router() {
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
@@ -62,6 +63,7 @@ function Router() {
                 <Route path="/admin/quotes" component={AdminQuotes} />
                 <Route path="/admin/invoices" component={AdminInvoices} />
                 <Route path="/admin/reservations" component={AdminReservations} />
+                <Route path="/admin/users" component={AdminUsers} />
                 <Route path="/admin/settings" component={AdminSettings} />
                 <Route path="/" component={AdminDashboard} />
                 <Route component={NotFound} />

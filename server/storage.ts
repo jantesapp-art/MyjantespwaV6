@@ -31,6 +31,8 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: string, userData: Partial<User>): Promise<User>;
+  createUser(user: { email: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User>;
+  deleteUser(id: string): Promise<void>;
 
   // Service operations
   getServices(): Promise<Service[]>;
@@ -105,6 +107,23 @@ export class DatabaseStorage implements IStorage {
       .where(eq(users.id, id))
       .returning();
     return user;
+  }
+
+  async createUser(userData: { email: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User> {
+    const [user] = await db
+      .insert(users)
+      .values({
+        email: userData.email,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        role: userData.role || "client",
+      })
+      .returning();
+    return user;
+  }
+
+  async deleteUser(id: string): Promise<void> {
+    await db.delete(users).where(eq(users.id, id));
   }
 
   // Service operations
