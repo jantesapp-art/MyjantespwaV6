@@ -2,6 +2,7 @@
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
+import { z } from "zod";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
 import { insertServiceSchema, insertQuoteSchema, insertInvoiceSchema, insertReservationSchema } from "@shared/schema";
@@ -118,6 +119,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching quotes:", error);
       res.status(500).json({ message: "Failed to fetch quotes" });
+    }
+  });
+
+  app.post("/api/admin/quotes", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const validatedData = insertQuoteSchema.parse({
+        ...req.body,
+        status: "pending",
+      });
+      const quote = await storage.createQuote(validatedData);
+      
+      // Create notification for client
+      await storage.createNotification({
+        userId: quote.clientId,
+        type: "quote",
+        title: "Nouveau devis",
+        message: `Un devis a été créé pour vous`,
+        relatedId: quote.id,
+      });
+
+      // Send WebSocket notification
+      const client = wsClients.get(quote.clientId);
+      if (client && client.readyState === WebSocket.OPEN) {
+        client.send(JSON.stringify({
+          type: "quote_updated",
+          quoteId: quote.id,
+          status: quote.status,
+        }));
+      }
+      
+      res.json(quote);
+    } catch (error: any) {
+      console.error("Error creating quote:", error);
+      res.status(400).json({ message: error.message || "Failed to create quote" });
     }
   });
 
@@ -307,6 +342,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
+    }
+  });
+
+  app.patch("/api/admin/users/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const updateSchema = z.object({
+        role: z.enum(["client", "admin"]).optional(),
+        firstName: z.string().optional(),
+        lastName: z.string().optional(),
+      });
+      const validatedData = updateSchema.parse(req.body);
+      const user = await storage.updateUser(id, validatedData);
+      res.json(user);
+    } catch (error: any) {
+      console.error("Error updating user:", error);
+      res.status(400).json({ message: error.message || "Failed to update user" });
     }
   });
 

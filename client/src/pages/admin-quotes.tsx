@@ -4,17 +4,18 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import type { Quote } from "@shared/schema";
+import type { Quote, User } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Check, X, FileText, Calendar, Download } from "lucide-react";
+import { Check, X, FileText, Calendar, Download, Plus } from "lucide-react";
 import { generateQuotePDF } from "@/lib/pdf-generator";
 
 export default function AdminQuotes() {
@@ -31,6 +32,12 @@ export default function AdminQuotes() {
   const [reservationDialog, setReservationDialog] = useState<Quote | null>(null);
   const [reservationDate, setReservationDate] = useState("");
   const [reservationNotes, setReservationNotes] = useState("");
+  
+  const [createQuoteDialog, setCreateQuoteDialog] = useState(false);
+  const [newQuoteClientId, setNewQuoteClientId] = useState("");
+  const [newQuoteServiceId, setNewQuoteServiceId] = useState("");
+  const [newQuotePaymentMethod, setNewQuotePaymentMethod] = useState<"cash" | "other">("other");
+  const [newQuoteDetails, setNewQuoteDetails] = useState("");
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin)) {
@@ -53,6 +60,11 @@ export default function AdminQuotes() {
   const { data: services = [] } = useQuery<any[]>({
     queryKey: ["/api/services"],
     enabled: isAuthenticated,
+  });
+
+  const { data: users = [] } = useQuery<User[]>({
+    queryKey: ["/api/admin/users"],
+    enabled: isAuthenticated && isAdmin,
   });
 
   const handleDownloadPDF = (quote: Quote) => {
@@ -188,6 +200,48 @@ export default function AdminQuotes() {
     });
   };
 
+  const createNewQuoteMutation = useMutation({
+    mutationFn: async (data: { clientId: string; serviceId: string; paymentMethod: string; requestDetails?: any }) => {
+      return apiRequest("POST", "/api/admin/quotes", data);
+    },
+    onSuccess: () => {
+      toast({
+        title: "Succès",
+        description: "Devis créé avec succès",
+      });
+      setCreateQuoteDialog(false);
+      setNewQuoteClientId("");
+      setNewQuoteServiceId("");
+      setNewQuotePaymentMethod("other");
+      setNewQuoteDetails("");
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/quotes"] });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Erreur",
+        description: error.message || "Échec de la création du devis",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateNewQuote = () => {
+    if (!newQuoteClientId || !newQuoteServiceId) {
+      toast({
+        title: "Erreur",
+        description: "Veuillez sélectionner un client et un service",
+        variant: "destructive",
+      });
+      return;
+    }
+    createNewQuoteMutation.mutate({
+      clientId: newQuoteClientId,
+      serviceId: newQuoteServiceId,
+      paymentMethod: newQuotePaymentMethod,
+      requestDetails: newQuoteDetails ? { notes: newQuoteDetails } : undefined,
+    });
+  };
+
   if (isLoading || !isAdmin) {
     return (
       <div className="p-6 space-y-6">
@@ -198,7 +252,13 @@ export default function AdminQuotes() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <h1 className="text-3xl font-bold" data-testid="text-admin-quotes-title">Gestion des Devis</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold" data-testid="text-admin-quotes-title">Gestion des Devis</h1>
+        <Button onClick={() => setCreateQuoteDialog(true)} data-testid="button-create-quote">
+          <Plus className="h-4 w-4 mr-2" />
+          Créer un devis
+        </Button>
+      </div>
 
       <Card>
         <CardHeader>
@@ -466,6 +526,86 @@ export default function AdminQuotes() {
               data-testid="button-save-reservation"
             >
               {createReservationMutation.isPending ? "Création..." : "Créer Réservation"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={createQuoteDialog} onOpenChange={setCreateQuoteDialog}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Créer un Nouveau Devis</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="new-quote-client">Client</Label>
+              <Select value={newQuoteClientId} onValueChange={setNewQuoteClientId}>
+                <SelectTrigger className="mt-2" data-testid="select-new-quote-client">
+                  <SelectValue placeholder="Sélectionner un client" />
+                </SelectTrigger>
+                <SelectContent>
+                  {users.filter(u => u.role === "client").map((user) => (
+                    <SelectItem key={user.id} value={user.id}>
+                      {user.firstName} {user.lastName} ({user.email})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="new-quote-service">Service</Label>
+              <Select value={newQuoteServiceId} onValueChange={setNewQuoteServiceId}>
+                <SelectTrigger className="mt-2" data-testid="select-new-quote-service">
+                  <SelectValue placeholder="Sélectionner un service" />
+                </SelectTrigger>
+                <SelectContent>
+                  {services.map((service) => (
+                    <SelectItem key={service.id} value={service.id}>
+                      {service.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="new-quote-payment-method">Moyen de paiement</Label>
+              <Select value={newQuotePaymentMethod} onValueChange={(v) => setNewQuotePaymentMethod(v as "cash" | "other")}>
+                <SelectTrigger className="mt-2" data-testid="select-new-quote-payment-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Espèces</SelectItem>
+                  <SelectItem value="other">Autre</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="new-quote-details">Détails (optionnel)</Label>
+              <Textarea
+                id="new-quote-details"
+                placeholder="Détails de la demande..."
+                value={newQuoteDetails}
+                onChange={(e) => setNewQuoteDetails(e.target.value)}
+                className="mt-2"
+                rows={3}
+                data-testid="textarea-new-quote-details"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setCreateQuoteDialog(false)}
+              data-testid="button-cancel-new-quote"
+            >
+              Annuler
+            </Button>
+            <Button
+              onClick={handleCreateNewQuote}
+              disabled={createNewQuoteMutation.isPending || !newQuoteClientId || !newQuoteServiceId}
+              data-testid="button-save-new-quote"
+            >
+              {createNewQuoteMutation.isPending ? "Création..." : "Créer Devis"}
             </Button>
           </DialogFooter>
         </DialogContent>

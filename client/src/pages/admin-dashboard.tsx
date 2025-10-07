@@ -1,9 +1,20 @@
 import { useEffect } from "react";
+import { Link } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { FileText, DollarSign, Calendar, Users } from "lucide-react";
+import { 
+  FileText, 
+  DollarSign, 
+  Calendar, 
+  Users,
+  ClipboardList,
+  CalendarClock,
+  CheckCircle,
+  Receipt,
+  Settings
+} from "lucide-react";
 import type { Quote, Invoice, Reservation, User } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -55,18 +66,18 @@ export default function AdminDashboard() {
     enabled: isAuthenticated && isAdmin,
   });
 
-  const pendingQuotes = quotes.filter((q) => q.status === "pending").length;
+  const totalReservations = reservations.length;
+  const totalQuotes = quotes.length;
+  const totalInvoices = invoices.length;
   const totalRevenue = invoices
     .filter((i) => i.status === "paid")
     .reduce((sum, i) => sum + parseFloat(i.amount || "0"), 0);
-  const upcomingReservations = reservations.filter((r) => r.status === "confirmed").length;
-  const totalClients = users.filter((u) => u.role === "client").length;
 
   if (isLoading || !isAdmin) {
     return (
       <div className="p-6 space-y-6">
         <Skeleton className="h-12 w-64" />
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {[1, 2, 3, 4].map((i) => (
             <Skeleton key={i} className="h-32" />
           ))}
@@ -76,150 +87,114 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <h1 className="text-3xl font-bold" data-testid="text-admin-dashboard-title">Tableau de bord Admin</h1>
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      {/* Header */}
+      <div>
+        <h1 className="text-3xl font-bold" data-testid="text-admin-dashboard-title">Dashboard Admin</h1>
+        <p className="text-muted-foreground mt-1">Vue d'ensemble de votre activité</p>
+      </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Devis en attente</CardTitle>
-            <FileText className="h-4 w-4 text-muted-foreground" />
+      {/* Statistics Cards */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <Card className="hover-elevate bg-card">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="text-base font-medium">Réservations</CardTitle>
+            <div className="h-12 w-12 rounded-full bg-blue-500/10 flex items-center justify-center">
+              <Users className="h-6 w-6 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-admin-pending-quotes">
-              {quotesLoading ? <Skeleton className="h-8 w-16" /> : pendingQuotes}
+            <div className="text-3xl font-bold" data-testid="text-admin-reservations-count">
+              {reservationsLoading ? <Skeleton className="h-9 w-16" /> : totalReservations}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              En attente de réponse
-            </p>
           </CardContent>
         </Card>
 
-        <Card className="hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Revenu total</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover-elevate bg-card">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="text-base font-medium">Devis</CardTitle>
+            <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+              <FileText className="h-6 w-6 text-green-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold font-mono" data-testid="text-admin-revenue">
-              {invoicesLoading ? <Skeleton className="h-8 w-24" /> : `${totalRevenue.toFixed(2)} €`}
+            <div className="text-3xl font-bold" data-testid="text-admin-quotes-count">
+              {quotesLoading ? <Skeleton className="h-9 w-16" /> : totalQuotes}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Factures payées
-            </p>
           </CardContent>
         </Card>
 
-        <Card className="hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Réservations à venir</CardTitle>
-            <Calendar className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover-elevate bg-card">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="text-base font-medium">Factures</CardTitle>
+            <div className="h-12 w-12 rounded-full bg-yellow-500/10 flex items-center justify-center">
+              <Receipt className="h-6 w-6 text-yellow-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-admin-reservations">
-              {reservationsLoading ? <Skeleton className="h-8 w-16" /> : upcomingReservations}
+            <div className="text-3xl font-bold" data-testid="text-admin-invoices-count">
+              {invoicesLoading ? <Skeleton className="h-9 w-16" /> : totalInvoices}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Rendez-vous confirmés
-            </p>
           </CardContent>
         </Card>
 
-        <Card className="hover-elevate">
-          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total clients</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
+        <Card className="hover-elevate bg-card">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-3">
+            <CardTitle className="text-base font-medium">Chiffre d'affaires</CardTitle>
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+              <DollarSign className="h-6 w-6 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold" data-testid="text-admin-clients">
-              {usersLoading ? <Skeleton className="h-8 w-16" /> : totalClients}
+            <div className="text-3xl font-bold font-mono" data-testid="text-admin-revenue">
+              {invoicesLoading ? <Skeleton className="h-9 w-32" /> : `${totalRevenue.toFixed(2)} €`}
             </div>
-            <p className="text-xs text-muted-foreground mt-1">
-              Utilisateurs enregistrés
-            </p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <Card>
-          <CardHeader>
-            <CardTitle>Devis récents</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {quotesLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16" />
-                ))}
-              </div>
-            ) : quotes.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucun devis pour le moment</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {quotes.slice(0, 5).map((quote) => (
-                  <div
-                    key={quote.id}
-                    className="flex items-center justify-between p-3 border border-border rounded-md text-sm"
-                    data-testid={`admin-quote-${quote.id}`}
-                  >
-                    <div>
-                      <p className="font-medium">Quote #{quote.id.slice(0, 8)}</p>
-                      <p className="text-xs text-muted-foreground">Client: {quote.clientId.slice(0, 8)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-mono">{quote.quoteAmount ? `$${quote.quoteAmount}` : "—"}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{quote.status}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      {/* Quick Actions */}
+      <Card className="bg-card">
+        <CardHeader>
+          <CardTitle className="text-xl">Actions rapides</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-2">
+          <Link href="/admin/reservations">
+            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-reservations">
+              <ClipboardList className="h-5 w-5 text-primary" />
+              <span className="font-medium">Gérer les réservations</span>
+            </a>
+          </Link>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>Factures récentes</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {invoicesLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Skeleton key={i} className="h-16" />
-                ))}
-              </div>
-            ) : invoices.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>Aucune facture pour le moment</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
-                {invoices.slice(0, 5).map((invoice) => (
-                  <div
-                    key={invoice.id}
-                    className="flex items-center justify-between p-3 border border-border rounded-md text-sm"
-                    data-testid={`admin-invoice-${invoice.id}`}
-                  >
-                    <div>
-                      <p className="font-medium">{invoice.invoiceNumber}</p>
-                      <p className="text-xs text-muted-foreground">Client: {invoice.clientId.slice(0, 8)}</p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-mono">${invoice.amount}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{invoice.status}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      </div>
+          <Link href="/admin/reservations">
+            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-planning-assignments">
+              <CalendarClock className="h-5 w-5 text-primary" />
+              <span className="font-medium">Planning & Assignations</span>
+            </a>
+          </Link>
+
+          <Link href="/admin/quotes">
+            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-validate-quotes">
+              <CheckCircle className="h-5 w-5 text-primary" />
+              <span className="font-medium">Valider les devis</span>
+            </a>
+          </Link>
+
+          <Link href="/admin/invoices">
+            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-invoices">
+              <Receipt className="h-5 w-5 text-primary" />
+              <span className="font-medium">Gérer les factures</span>
+            </a>
+          </Link>
+
+          <Link href="/admin/settings">
+            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-users">
+              <Users className="h-5 w-5 text-primary" />
+              <span className="font-medium">Gérer les utilisateurs</span>
+            </a>
+          </Link>
+        </CardContent>
+      </Card>
     </div>
   );
 }
