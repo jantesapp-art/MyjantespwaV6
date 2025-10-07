@@ -505,7 +505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.status(400).json({ error: "mediaURL is required" });
     }
 
-    const userId = (req as any).user.claims.sub;
+    const userId = (req as any).user.id;
 
     try {
       const objectStorageService = new ObjectStorageService();
