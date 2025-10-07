@@ -9,7 +9,7 @@ export default function Landing() {
         <div className="container mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-2xl font-bold text-primary">MyJantes</h1>
           <Button asChild data-testid="button-login">
-            <a href="/api/login">Sign In</a>
+            <a href="/api/login">Se connecter</a>
           </Button>
         </div>
       </header>
@@ -17,14 +17,14 @@ export default function Landing() {
       <main className="container mx-auto px-4">
         <section className="py-16 lg:py-24 text-center">
           <h2 className="text-4xl lg:text-5xl font-bold mb-6">
-            Professional Service Management
+            Gestion Professionnelle de Services
           </h2>
           <p className="text-lg lg:text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
-            Streamline your automotive service business with our comprehensive platform for quotes, invoices, and reservations.
+            Simplifiez votre activité automobile avec notre plateforme complète pour les devis, factures et réservations.
           </p>
           <Button size="lg" asChild data-testid="button-get-started">
             <a href="/api/login" className="text-base">
-              Get Started
+              Commencer
             </a>
           </Button>
         </section>
@@ -34,9 +34,9 @@ export default function Landing() {
             <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center mb-4">
               <FileText className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Quick Quotes</h3>
+            <h3 className="text-xl font-semibold mb-2">Devis Rapides</h3>
             <p className="text-sm text-muted-foreground">
-              Request and manage service quotes with ease
+              Demandez et gérez vos devis en toute simplicité
             </p>
           </Card>
 
@@ -44,9 +44,9 @@ export default function Landing() {
             <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center mb-4">
               <CheckCircle2 className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Smart Approvals</h3>
+            <h3 className="text-xl font-semibold mb-2">Approbations Intelligentes</h3>
             <p className="text-sm text-muted-foreground">
-              Approve quotes and confirm reservations instantly
+              Approuvez les devis et confirmez les réservations instantanément
             </p>
           </Card>
 
@@ -54,9 +54,9 @@ export default function Landing() {
             <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center mb-4">
               <Calendar className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Reservations</h3>
+            <h3 className="text-xl font-semibold mb-2">Réservations</h3>
             <p className="text-sm text-muted-foreground">
-              Schedule and track service appointments
+              Planifiez et suivez vos rendez-vous de service
             </p>
           </Card>
 
@@ -64,27 +64,27 @@ export default function Landing() {
             <div className="h-12 w-12 rounded-md bg-primary/10 flex items-center justify-center mb-4">
               <Bell className="h-6 w-6 text-primary" />
             </div>
-            <h3 className="text-xl font-semibold mb-2">Real-time Notifications</h3>
+            <h3 className="text-xl font-semibold mb-2">Notifications en Temps Réel</h3>
             <p className="text-sm text-muted-foreground">
-              Stay updated with instant notifications
+              Restez informé avec des notifications instantanées
             </p>
           </Card>
         </section>
 
         <section className="py-12 text-center">
-          <h3 className="text-2xl font-bold mb-4">Ready to get started?</h3>
+          <h3 className="text-2xl font-bold mb-4">Prêt à commencer ?</h3>
           <p className="text-muted-foreground mb-6">
-            Join us today and streamline your service management
+            Rejoignez-nous dès aujourd'hui et simplifiez votre gestion de services
           </p>
           <Button size="lg" asChild data-testid="button-cta">
-            <a href="/api/login">Sign In Now</a>
+            <a href="/api/login">Se connecter maintenant</a>
           </Button>
         </section>
       </main>
 
       <footer className="border-t border-border mt-16">
         <div className="container mx-auto px-4 py-8 text-center text-sm text-muted-foreground">
-          <p>&copy; {new Date().getFullYear()} MyJantes. All rights reserved.</p>
+          <p>&copy; {new Date().getFullYear()} MyJantes. Tous droits réservés.</p>
         </div>
       </footer>
     </div>

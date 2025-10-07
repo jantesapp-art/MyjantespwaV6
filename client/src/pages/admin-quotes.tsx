@@ -25,8 +25,8 @@ export default function AdminQuotes() {
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin)) {
       toast({
-        title: "Unauthorized",
-        description: "You don't have permission to access this page.",
+        title: "Non autorisé",
+        description: "Vous n'avez pas la permission d'accéder à cette page.",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -46,8 +46,8 @@ export default function AdminQuotes() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Quote updated successfully",
+        title: "Succès",
+        description: "Devis mis à jour avec succès",
       });
       setSelectedQuote(null);
       setQuoteAmount("");
@@ -56,8 +56,8 @@ export default function AdminQuotes() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update quote",
+        title: "Erreur",
+        description: error.message || "Échec de la mise à jour du devis",
         variant: "destructive",
       });
     },

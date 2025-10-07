@@ -13,7 +13,7 @@ import { useLocation } from "wouter";
 
 const menuItems = [
   {
-    title: "Dashboard",
+    title: "Tableau de bord",
     url: "/admin",
     icon: Home,
   },
@@ -23,22 +23,22 @@ const menuItems = [
     icon: Package,
   },
   {
-    title: "Quotes",
+    title: "Devis",
     url: "/admin/quotes",
     icon: FileText,
   },
   {
-    title: "Invoices",
+    title: "Factures",
     url: "/admin/invoices",
     icon: DollarSign,
   },
   {
-    title: "Reservations",
+    title: "Réservations",
     url: "/admin/reservations",
     icon: Calendar,
   },
   {
-    title: "Settings",
+    title: "Paramètres",
     url: "/admin/settings",
     icon: Settings,
   },

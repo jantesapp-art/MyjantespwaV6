@@ -18,8 +18,8 @@ export default function ClientDashboard() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Non autorisé",
+        description: "Vous êtes déconnecté. Reconnexion...",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -64,11 +64,11 @@ export default function ClientDashboard() {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-3xl font-bold" data-testid="text-dashboard-title">Dashboard</h1>
+        <h1 className="text-3xl font-bold" data-testid="text-dashboard-title">Tableau de bord</h1>
         <Button asChild data-testid="button-new-quote">
           <Link href="/services">
             <Plus className="h-4 w-4 mr-2" />
-            Request Quote
+            Demander un devis
           </Link>
         </Button>
       </div>
@@ -76,7 +76,7 @@ export default function ClientDashboard() {
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Quotes</CardTitle>
+            <CardTitle className="text-sm font-medium">Devis en attente</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -88,7 +88,7 @@ export default function ClientDashboard() {
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Invoices</CardTitle>
+            <CardTitle className="text-sm font-medium">Factures en attente</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -100,7 +100,7 @@ export default function ClientDashboard() {
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Reservations</CardTitle>
+            <CardTitle className="text-sm font-medium">Réservations à venir</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -113,7 +113,7 @@ export default function ClientDashboard() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Recent Quotes</CardTitle>
+          <CardTitle>Devis récents</CardTitle>
         </CardHeader>
         <CardContent>
           {quotesLoading ? (
@@ -125,9 +125,9 @@ export default function ClientDashboard() {
           ) : quotes.length === 0 ? (
             <div className="text-center py-8 text-muted-foreground">
               <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No quotes yet. Request a quote to get started!</p>
+              <p>Aucun devis pour le moment. Demandez un devis pour commencer !</p>
               <Button asChild className="mt-4" variant="outline" data-testid="button-request-first-quote">
-                <Link href="/services">Browse Services</Link>
+                <Link href="/services">Parcourir les services</Link>
               </Button>
             </div>
           ) : (

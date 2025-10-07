@@ -58,7 +58,7 @@ export function NotificationBell() {
         <DropdownMenuSeparator />
         {notifications.length === 0 ? (
           <div className="p-4 text-center text-sm text-muted-foreground">
-            No notifications
+            Aucune notification
           </div>
         ) : (
           <ScrollArea className="h-[300px]">

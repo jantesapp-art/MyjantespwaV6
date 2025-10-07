@@ -14,8 +14,8 @@ export default function AdminDashboard() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Non autorisé",
+        description: "Vous êtes déconnecté. Reconnexion...",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -25,8 +25,8 @@ export default function AdminDashboard() {
     }
     if (!isLoading && !isAdmin) {
       toast({
-        title: "Access Denied",
-        description: "You don't have permission to access this page.",
+        title: "Accès refusé",
+        description: "Vous n'avez pas la permission d'accéder à cette page.",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -77,12 +77,12 @@ export default function AdminDashboard() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <h1 className="text-3xl font-bold" data-testid="text-admin-dashboard-title">Admin Dashboard</h1>
+      <h1 className="text-3xl font-bold" data-testid="text-admin-dashboard-title">Tableau de bord Admin</h1>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Pending Quotes</CardTitle>
+            <CardTitle className="text-sm font-medium">Devis en attente</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -90,29 +90,29 @@ export default function AdminDashboard() {
               {quotesLoading ? <Skeleton className="h-8 w-16" /> : pendingQuotes}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Awaiting response
+              En attente de réponse
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">Revenu total</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold font-mono" data-testid="text-admin-revenue">
-              {invoicesLoading ? <Skeleton className="h-8 w-24" /> : `$${totalRevenue.toFixed(2)}`}
+              {invoicesLoading ? <Skeleton className="h-8 w-24" /> : `${totalRevenue.toFixed(2)} €`}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              From paid invoices
+              Factures payées
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Upcoming Reservations</CardTitle>
+            <CardTitle className="text-sm font-medium">Réservations à venir</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -120,14 +120,14 @@ export default function AdminDashboard() {
               {reservationsLoading ? <Skeleton className="h-8 w-16" /> : upcomingReservations}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Confirmed appointments
+              Rendez-vous confirmés
             </p>
           </CardContent>
         </Card>
 
         <Card className="hover-elevate">
           <CardHeader className="flex flex-row items-center justify-between gap-2 space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+            <CardTitle className="text-sm font-medium">Total clients</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -135,7 +135,7 @@ export default function AdminDashboard() {
               {usersLoading ? <Skeleton className="h-8 w-16" /> : totalClients}
             </div>
             <p className="text-xs text-muted-foreground mt-1">
-              Registered users
+              Utilisateurs enregistrés
             </p>
           </CardContent>
         </Card>
@@ -144,7 +144,7 @@ export default function AdminDashboard() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Quotes</CardTitle>
+            <CardTitle>Devis récents</CardTitle>
           </CardHeader>
           <CardContent>
             {quotesLoading ? (
@@ -156,7 +156,7 @@ export default function AdminDashboard() {
             ) : quotes.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No quotes yet</p>
+                <p>Aucun devis pour le moment</p>
               </div>
             ) : (
               <div className="space-y-2">
@@ -183,7 +183,7 @@ export default function AdminDashboard() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Recent Invoices</CardTitle>
+            <CardTitle>Factures récentes</CardTitle>
           </CardHeader>
           <CardContent>
             {invoicesLoading ? (
@@ -195,7 +195,7 @@ export default function AdminDashboard() {
             ) : invoices.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
                 <DollarSign className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No invoices yet</p>
+                <p>Aucune facture pour le moment</p>
               </div>
             ) : (
               <div className="space-y-2">

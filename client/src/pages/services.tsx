@@ -21,8 +21,8 @@ export default function Services() {
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       toast({
-        title: "Unauthorized",
-        description: "You are logged out. Logging in again...",
+        title: "Non autorisé",
+        description: "Vous êtes déconnecté. Reconnexion...",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -43,8 +43,8 @@ export default function Services() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Quote request submitted successfully",
+        title: "Succès",
+        description: "Demande de devis soumise avec succès",
       });
       setSelectedService(null);
       setRequestDetails("");
@@ -53,8 +53,8 @@ export default function Services() {
     onError: (error: Error) => {
       if (isUnauthorizedError(error)) {
         toast({
-          title: "Unauthorized",
-          description: "You are logged out. Logging in again...",
+          title: "Non autorisé",
+          description: "Vous êtes déconnecté. Reconnexion...",
           variant: "destructive",
         });
         setTimeout(() => {
@@ -63,8 +63,8 @@ export default function Services() {
         return;
       }
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit quote request",
+        title: "Erreur",
+        description: error.message || "Échec de la soumission de la demande de devis",
         variant: "destructive",
       });
     },

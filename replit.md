@@ -1,12 +1,14 @@
-# MyJantes - Automotive Service Management PWA
+# MyJantes - Application de Gestion de Services Automobiles (PWA)
 
-## Overview
+## Vue d'ensemble
 
-MyJantes is a Progressive Web Application (PWA) designed for automotive service management. The platform enables seamless interaction between clients and administrators for managing service quotes, invoices, and reservations. Built with a modern tech stack, it provides real-time updates through WebSocket connections and a responsive, mobile-first user interface following Material Design principles.
+MyJantes est une Progressive Web Application (PWA) conçue pour la gestion de services automobiles. La plateforme permet une interaction fluide entre les clients et les administrateurs pour gérer les devis, factures et réservations. Construite avec une stack technologique moderne, elle offre des mises à jour en temps réel via WebSocket et une interface utilisateur responsive et mobile-first suivant les principes Material Design.
 
-## User Preferences
+## Préférences utilisateur
 
-Preferred communication style: Simple, everyday language.
+Style de communication préféré : Langue simple et quotidienne.
+Langue de l'interface : Français
+Thème de couleur : Rouge vif (primary: 0 84% 60%) au lieu du bleu professionnel
 
 ## System Architecture
 

@@ -16,8 +16,8 @@ export default function AdminReservations() {
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin)) {
       toast({
-        title: "Unauthorized",
-        description: "You don't have permission to access this page.",
+        title: "Non autorisé",
+        description: "Vous n'avez pas la permission d'accéder à cette page.",
         variant: "destructive",
       });
       setTimeout(() => {

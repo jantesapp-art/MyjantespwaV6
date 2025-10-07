@@ -32,8 +32,8 @@ export default function AdminInvoices() {
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin)) {
       toast({
-        title: "Unauthorized",
-        description: "You don't have permission to access this page.",
+        title: "Non autorisé",
+        description: "Vous n'avez pas la permission d'accéder à cette page.",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -60,8 +60,8 @@ export default function AdminInvoices() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Invoice created successfully",
+        title: "Succès",
+        description: "Facture créée avec succès",
       });
       setIsDialogOpen(false);
       setFormData({
@@ -76,8 +76,8 @@ export default function AdminInvoices() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create invoice",
+        title: "Erreur",
+        description: error.message || "Échec de la création de la facture",
         variant: "destructive",
       });
     },

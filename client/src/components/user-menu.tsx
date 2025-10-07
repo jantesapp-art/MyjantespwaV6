@@ -49,7 +49,7 @@ export function UserMenu() {
               <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             )}
             <Badge variant="outline" className="w-fit mt-2">
-              {user.role === "admin" ? "Admin" : "Client"}
+              {user.role === "admin" ? "Administrateur" : "Client"}
             </Badge>
           </div>
         </DropdownMenuLabel>
@@ -57,7 +57,7 @@ export function UserMenu() {
         <DropdownMenuItem asChild>
           <a href="/api/logout" className="cursor-pointer" data-testid="button-logout">
             <LogOut className="mr-2 h-4 w-4" />
-            <span>Log out</span>
+            <span>Déconnexion</span>
           </a>
         </DropdownMenuItem>
       </DropdownMenuContent>
