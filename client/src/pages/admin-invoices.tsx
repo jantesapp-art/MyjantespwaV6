@@ -15,7 +15,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
+import { generateInvoicePDF } from "@/lib/pdf-generator";
 
 export default function AdminInvoices() {
   const { toast } = useToast();
@@ -53,7 +54,22 @@ export default function AdminInvoices() {
     enabled: isAuthenticated && isAdmin,
   });
 
+  const { data: services = [] } = useQuery<any[]>({
+    queryKey: ["/api/services"],
+    enabled: isAuthenticated,
+  });
+
   const approvedQuotes = quotes.filter((q) => q.status === "approved");
+
+  const handleDownloadPDF = (invoice: Invoice) => {
+    const quote = quotes.find(q => q.id === invoice.quoteId);
+    const service = services.find(s => s.id === quote?.serviceId);
+    const clientInfo = { 
+      name: `Client-${invoice.clientId.slice(0, 8)}`,
+      email: 'client@myjantes.fr'
+    };
+    generateInvoicePDF(invoice, clientInfo, quote, service);
+  };
 
   const createInvoiceMutation = useMutation({
     mutationFn: async (data: any) => {
@@ -166,13 +182,24 @@ export default function AdminInvoices() {
                       </p>
                     )}
                   </div>
-                  <div className="text-right">
-                    <p className="font-mono font-bold text-xl">${invoice.amount}</p>
-                    {invoice.dueDate && (
-                      <p className="text-xs text-muted-foreground mt-1">
-                        Échéance: {new Date(invoice.dueDate).toLocaleDateString('fr-FR')}
-                      </p>
-                    )}
+                  <div className="flex items-center gap-4">
+                    <div className="text-right">
+                      <p className="font-mono font-bold text-xl">${invoice.amount}</p>
+                      {invoice.dueDate && (
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Échéance: {new Date(invoice.dueDate).toLocaleDateString('fr-FR')}
+                        </p>
+                      )}
+                    </div>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleDownloadPDF(invoice)}
+                      data-testid={`button-download-invoice-pdf-${invoice.id}`}
+                    >
+                      <Download className="h-4 w-4 mr-2" />
+                      PDF
+                    </Button>
                   </div>
                 </div>
               ))}

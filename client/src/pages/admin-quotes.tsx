@@ -14,7 +14,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Check, X, FileText, Calendar } from "lucide-react";
+import { Check, X, FileText, Calendar, Download } from "lucide-react";
+import { generateQuotePDF } from "@/lib/pdf-generator";
 
 export default function AdminQuotes() {
   const { toast } = useToast();
@@ -48,6 +49,20 @@ export default function AdminQuotes() {
     queryKey: ["/api/admin/quotes"],
     enabled: isAuthenticated && isAdmin,
   });
+
+  const { data: services = [] } = useQuery<any[]>({
+    queryKey: ["/api/services"],
+    enabled: isAuthenticated,
+  });
+
+  const handleDownloadPDF = (quote: Quote) => {
+    const service = services.find(s => s.id === quote.serviceId);
+    const clientInfo = { 
+      name: `Client-${quote.clientId.slice(0, 8)}`,
+      email: 'client@myjantes.fr'
+    };
+    generateQuotePDF(quote, clientInfo, service);
+  };
 
   const updateQuoteMutation = useMutation({
     mutationFn: async (data: { id: string; quoteAmount?: string; notes?: string; status?: string }) => {
@@ -250,6 +265,15 @@ export default function AdminQuotes() {
                     )}
                     {quote.status === "approved" && (
                       <div className="flex gap-2">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => handleDownloadPDF(quote)}
+                          data-testid={`button-download-pdf-${quote.id}`}
+                        >
+                          <Download className="h-4 w-4 mr-2" />
+                          PDF
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"
