@@ -62,6 +62,12 @@ export const quotes = pgTable("quotes", {
   paymentMethod: varchar("payment_method", { enum: ["cash", "other"] }).notNull().default("other"),
   requestDetails: jsonb("request_details"), // Custom form data from client
   quoteAmount: decimal("quote_amount", { precision: 10, scale: 2 }),
+  wheelCount: integer("wheel_count"), // Number of wheels: 1, 2, 3, or 4
+  diameter: varchar("diameter", { length: 50 }), // Wheel diameter
+  priceExcludingTax: decimal("price_excluding_tax", { precision: 10, scale: 2 }), // Prix HT
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }), // TVA rate (e.g., 20.00 for 20%)
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }), // TVA amount
+  productDetails: text("product_details"), // Details about products
   notes: text("notes"),
   validUntil: timestamp("valid_until"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -75,6 +81,12 @@ export const invoices = pgTable("invoices", {
   clientId: varchar("client_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   invoiceNumber: varchar("invoice_number", { length: 50 }).notNull().unique(),
   amount: decimal("amount", { precision: 10, scale: 2 }).notNull(),
+  wheelCount: integer("wheel_count"), // Number of wheels: 1, 2, 3, or 4
+  diameter: varchar("diameter", { length: 50 }), // Wheel diameter
+  priceExcludingTax: decimal("price_excluding_tax", { precision: 10, scale: 2 }), // Prix HT
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }), // TVA rate (e.g., 20.00 for 20%)
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }), // TVA amount
+  productDetails: text("product_details"), // Details about products
   status: varchar("status", { enum: ["pending", "paid", "overdue", "cancelled"] }).notNull().default("pending"),
   dueDate: timestamp("due_date"),
   paidAt: timestamp("paid_at"),
