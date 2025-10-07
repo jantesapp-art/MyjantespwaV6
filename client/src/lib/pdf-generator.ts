@@ -1,5 +1,6 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import QRCode from 'qrcode';
 import type { Quote, Invoice } from '@shared/schema';
 
 interface PDFData {
@@ -275,4 +276,73 @@ export function generateInvoicePDF(invoice: Invoice, clientInfo: any, quoteInfo:
   
   // Save PDF
   doc.save(`facture-${invoice.invoiceNumber}.pdf`);
+}
+
+// Generate labels PDF with QR codes for wheels and car key
+export async function generateLabelsPDF(invoiceOrQuote: Invoice | Quote, type: 'invoice' | 'quote') {
+  const doc = new jsPDF();
+  
+  // Get document number
+  const docNumber = type === 'invoice' 
+    ? (invoiceOrQuote as Invoice).invoiceNumber
+    : `DV-${new Date().getFullYear()}-${invoiceOrQuote.id.slice(0, 6)}`;
+  
+  // Label positions and text
+  const labels = [
+    { position: 'AVG', name: 'AVANT GAUCHE' },
+    { position: 'AVD', name: 'AVANT DROITE' },
+    { position: 'ARG', name: 'ARRIÈRE GAUCHE' },
+    { position: 'ARD', name: 'ARRIÈRE DROITE' },
+    { position: 'CLÉ', name: 'CLÉ VÉHICULE' }
+  ];
+  
+  // A4 dimensions
+  const pageHeight = doc.internal.pageSize.height;
+  const pageWidth = doc.internal.pageSize.width;
+  
+  // Calculate label dimensions (5 labels on one page)
+  const labelHeight = pageHeight / 5;
+  const qrSize = 50; // QR code size
+  
+  // Generate QR code data URL for each label
+  for (let i = 0; i < labels.length; i++) {
+    const label = labels[i];
+    const yPos = i * labelHeight;
+    
+    // Generate QR code with document number and position
+    const qrData = `${docNumber}-${label.position}`;
+    const qrCodeDataUrl = await QRCode.toDataURL(qrData, {
+      width: 200,
+      margin: 1,
+    });
+    
+    // Draw border around label
+    doc.setDrawColor(0);
+    doc.setLineWidth(0.5);
+    doc.rect(10, yPos + 10, pageWidth - 20, labelHeight - 20);
+    
+    // Add QR code (left side)
+    doc.addImage(qrCodeDataUrl, 'PNG', 20, yPos + labelHeight / 2 - qrSize / 2, qrSize, qrSize);
+    
+    // Add position text (center-right)
+    doc.setFontSize(24);
+    doc.setFont('helvetica', 'bold');
+    doc.text(label.position, pageWidth / 2, yPos + labelHeight / 2 - 10, { align: 'center' });
+    
+    // Add full name
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'normal');
+    doc.text(label.name, pageWidth / 2, yPos + labelHeight / 2 + 5, { align: 'center' });
+    
+    // Add document number
+    doc.setFontSize(12);
+    doc.setFont('helvetica', 'bold');
+    doc.text(docNumber, pageWidth / 2, yPos + labelHeight / 2 + 15, { align: 'center' });
+  }
+  
+  // Save PDF
+  const fileName = type === 'invoice' 
+    ? `etiquettes-facture-${docNumber}.pdf`
+    : `etiquettes-devis-${docNumber}.pdf`;
+  doc.save(fileName);
 }
