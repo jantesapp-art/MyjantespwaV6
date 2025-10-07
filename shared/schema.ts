@@ -116,6 +116,28 @@ export const invoiceCounters = pgTable("invoice_counters", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Media files for quotes (images and videos)
+export const quoteMedia = pgTable("quote_media", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  quoteId: varchar("quote_id").notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  fileType: varchar("file_type", { enum: ["image", "video"] }).notNull(),
+  filePath: varchar("file_path", { length: 500 }).notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  fileSize: integer("file_size"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Media files for invoices (images and videos)
+export const invoiceMedia = pgTable("invoice_media", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  invoiceId: varchar("invoice_id").notNull().references(() => invoices.id, { onDelete: 'cascade' }),
+  fileType: varchar("file_type", { enum: ["image", "video"] }).notNull(),
+  filePath: varchar("file_path", { length: 500 }).notNull(),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  fileSize: integer("file_size"),
+  createdAt: timestamp("created_at").defaultNow(),
+});
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   quotes: many(quotes),
@@ -175,6 +197,20 @@ export const notificationsRelations = relations(notifications, ({ one }) => ({
   }),
 }));
 
+export const quoteMediaRelations = relations(quoteMedia, ({ one }) => ({
+  quote: one(quotes, {
+    fields: [quoteMedia.quoteId],
+    references: [quotes.id],
+  }),
+}));
+
+export const invoiceMediaRelations = relations(invoiceMedia, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [invoiceMedia.invoiceId],
+    references: [invoices.id],
+  }),
+}));
+
 // Zod Schemas for validation
 export const insertUserSchema = createInsertSchema(users);
 export const insertServiceSchema = createInsertSchema(services).omit({ id: true, createdAt: true, updatedAt: true });
@@ -201,6 +237,8 @@ export const insertReservationSchema = createInsertSchema(reservations)
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertInvoiceCounterSchema = createInsertSchema(invoiceCounters).omit({ id: true, updatedAt: true });
+export const insertQuoteMediaSchema = createInsertSchema(quoteMedia).omit({ id: true, createdAt: true });
+export const insertInvoiceMediaSchema = createInsertSchema(invoiceMedia).omit({ id: true, createdAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -217,3 +255,7 @@ export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;
 export type InsertInvoiceCounter = z.infer<typeof insertInvoiceCounterSchema>;
 export type InvoiceCounter = typeof invoiceCounters.$inferSelect;
+export type InsertQuoteMedia = z.infer<typeof insertQuoteMediaSchema>;
+export type QuoteMedia = typeof quoteMedia.$inferSelect;
+export type InsertInvoiceMedia = z.infer<typeof insertInvoiceMediaSchema>;
+export type InvoiceMedia = typeof invoiceMedia.$inferSelect;
