@@ -7,6 +7,7 @@ import type { Reservation } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 import { StatusBadge } from "@/components/status-badge";
 import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Calendar } from "lucide-react";
 
 export default function AdminReservations() {
@@ -41,11 +42,11 @@ export default function AdminReservations() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <h1 className="text-3xl font-bold" data-testid="text-admin-reservations-title">Reservation Management</h1>
+      <h1 className="text-3xl font-bold" data-testid="text-admin-reservations-title">Gestion des Réservations</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Reservations</CardTitle>
+          <CardTitle>Toutes les Réservations</CardTitle>
         </CardHeader>
         <CardContent>
           {reservationsLoading ? (
@@ -57,7 +58,7 @@ export default function AdminReservations() {
           ) : reservations.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Calendar className="h-12 w-12 mx-auto mb-4 opacity-50" />
-              <p>No reservations yet</p>
+              <p>Aucune réservation pour le moment</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -69,21 +70,21 @@ export default function AdminReservations() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <p className="font-semibold">Reservation #{reservation.id.slice(0, 8)}</p>
+                      <p className="font-semibold">Réservation #{reservation.id.slice(0, 8)}</p>
                       <StatusBadge status={reservation.status as any} />
                     </div>
-                    <p className="text-sm text-muted-foreground">Client ID: {reservation.clientId.slice(0, 8)}</p>
-                    <p className="text-sm text-muted-foreground">Service ID: {reservation.serviceId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">ID Client: {reservation.clientId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">ID Service: {reservation.serviceId.slice(0, 8)}</p>
                     {reservation.createdAt && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(reservation.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(reservation.createdAt), { addSuffix: true, locale: fr })}
                       </p>
                     )}
                   </div>
                   <div className="text-right">
                     {reservation.scheduledDate && (
                       <p className="font-medium">
-                        {new Date(reservation.scheduledDate).toLocaleDateString()}
+                        {new Date(reservation.scheduledDate).toLocaleDateString('fr-FR')}
                       </p>
                     )}
                   </div>

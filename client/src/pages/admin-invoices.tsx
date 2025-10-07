@@ -14,6 +14,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Plus } from "lucide-react";
 
 export default function AdminInvoices() {
@@ -119,19 +120,19 @@ export default function AdminInvoices() {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-3xl font-bold" data-testid="text-admin-invoices-title">Invoice Management</h1>
+        <h1 className="text-3xl font-bold" data-testid="text-admin-invoices-title">Gestion des Factures</h1>
         <Button
           onClick={() => setIsDialogOpen(true)}
           data-testid="button-create-invoice"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Create Invoice
+          Créer une Facture
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Invoices</CardTitle>
+          <CardTitle>Toutes les Factures</CardTitle>
         </CardHeader>
         <CardContent>
           {invoicesLoading ? (
@@ -142,7 +143,7 @@ export default function AdminInvoices() {
             </div>
           ) : invoices.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              <p>No invoices yet. Create one to get started!</p>
+              <p>Aucune facture pour le moment. Créez-en une pour commencer!</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -157,11 +158,11 @@ export default function AdminInvoices() {
                       <p className="font-semibold font-mono">{invoice.invoiceNumber}</p>
                       <StatusBadge status={invoice.status as any} />
                     </div>
-                    <p className="text-sm text-muted-foreground">Client ID: {invoice.clientId.slice(0, 8)}</p>
-                    <p className="text-sm text-muted-foreground">Quote ID: {invoice.quoteId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">ID Client: {invoice.clientId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">ID Devis: {invoice.quoteId.slice(0, 8)}</p>
                     {invoice.createdAt && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(invoice.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(invoice.createdAt), { addSuffix: true, locale: fr })}
                       </p>
                     )}
                   </div>
@@ -169,7 +170,7 @@ export default function AdminInvoices() {
                     <p className="font-mono font-bold text-xl">${invoice.amount}</p>
                     {invoice.dueDate && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        Due: {new Date(invoice.dueDate).toLocaleDateString()}
+                        Échéance: {new Date(invoice.dueDate).toLocaleDateString('fr-FR')}
                       </p>
                     )}
                   </div>
@@ -183,29 +184,29 @@ export default function AdminInvoices() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Create New Invoice</DialogTitle>
+            <DialogTitle>Créer une Nouvelle Facture</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="quote-select">Select Approved Quote</Label>
+              <Label htmlFor="quote-select">Sélectionner un Devis Approuvé</Label>
               <Select
                 value={formData.quoteId}
                 onValueChange={handleQuoteSelect}
               >
                 <SelectTrigger id="quote-select" data-testid="select-quote">
-                  <SelectValue placeholder="Select a quote" />
+                  <SelectValue placeholder="Sélectionner un devis" />
                 </SelectTrigger>
                 <SelectContent>
                   {approvedQuotes.map((quote) => (
                     <SelectItem key={quote.id} value={quote.id}>
-                      Quote #{quote.id.slice(0, 8)} - ${quote.quoteAmount}
+                      Devis #{quote.id.slice(0, 8)} - ${quote.quoteAmount}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div>
-              <Label htmlFor="invoice-amount">Amount ($)</Label>
+              <Label htmlFor="invoice-amount">Montant ($)</Label>
               <Input
                 id="invoice-amount"
                 type="number"
@@ -218,7 +219,7 @@ export default function AdminInvoices() {
               />
             </div>
             <div>
-              <Label htmlFor="invoice-due-date">Due Date</Label>
+              <Label htmlFor="invoice-due-date">Date d'Échéance</Label>
               <Input
                 id="invoice-due-date"
                 type="date"
@@ -234,7 +235,7 @@ export default function AdminInvoices() {
                 id="invoice-notes"
                 value={formData.notes}
                 onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Add any notes..."
+                placeholder="Ajouter des notes..."
                 className="mt-2"
                 rows={3}
                 data-testid="textarea-invoice-notes"
@@ -247,14 +248,14 @@ export default function AdminInvoices() {
               onClick={() => setIsDialogOpen(false)}
               data-testid="button-cancel-invoice"
             >
-              Cancel
+              Annuler
             </Button>
             <Button
               onClick={handleCreateInvoice}
               disabled={createInvoiceMutation.isPending || !formData.quoteId || !formData.amount}
               data-testid="button-save-invoice"
             >
-              {createInvoiceMutation.isPending ? "Creating..." : "Create Invoice"}
+              {createInvoiceMutation.isPending ? "Création..." : "Créer la Facture"}
             </Button>
           </DialogFooter>
         </DialogContent>

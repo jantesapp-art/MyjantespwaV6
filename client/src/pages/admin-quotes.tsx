@@ -13,6 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import { Check, X } from "lucide-react";
 
 export default function AdminQuotes() {
@@ -91,11 +92,11 @@ export default function AdminQuotes() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <h1 className="text-3xl font-bold" data-testid="text-admin-quotes-title">Quote Management</h1>
+      <h1 className="text-3xl font-bold" data-testid="text-admin-quotes-title">Gestion des Devis</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Quotes</CardTitle>
+          <CardTitle>Tous les Devis</CardTitle>
         </CardHeader>
         <CardContent>
           {quotesLoading ? (
@@ -106,7 +107,7 @@ export default function AdminQuotes() {
             </div>
           ) : quotes.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              <p>No quotes yet</p>
+              <p>Aucun devis pour le moment</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -118,14 +119,14 @@ export default function AdminQuotes() {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-3 mb-2">
-                      <p className="font-semibold">Quote #{quote.id.slice(0, 8)}</p>
+                      <p className="font-semibold">Devis #{quote.id.slice(0, 8)}</p>
                       <StatusBadge status={quote.status as any} />
                     </div>
-                    <p className="text-sm text-muted-foreground">Client ID: {quote.clientId.slice(0, 8)}</p>
-                    <p className="text-sm text-muted-foreground">Service ID: {quote.serviceId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">ID Client: {quote.clientId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">ID Service: {quote.serviceId.slice(0, 8)}</p>
                     {quote.createdAt && (
                       <p className="text-xs text-muted-foreground mt-1">
-                        {formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true })}
+                        {formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true, locale: fr })}
                       </p>
                     )}
                   </div>
@@ -144,7 +145,7 @@ export default function AdminQuotes() {
                           }}
                           data-testid={`button-respond-${quote.id}`}
                         >
-                          Respond
+                          Répondre
                         </Button>
                         <Button
                           size="sm"
@@ -167,11 +168,11 @@ export default function AdminQuotes() {
       <Dialog open={!!selectedQuote} onOpenChange={(open) => !open && setSelectedQuote(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Respond to Quote Request</DialogTitle>
+            <DialogTitle>Répondre à la Demande de Devis</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="quote-amount">Quote Amount ($)</Label>
+              <Label htmlFor="quote-amount">Montant du Devis ($)</Label>
               <Input
                 id="quote-amount"
                 type="number"
@@ -187,7 +188,7 @@ export default function AdminQuotes() {
               <Label htmlFor="quote-notes">Notes</Label>
               <Textarea
                 id="quote-notes"
-                placeholder="Add any additional details..."
+                placeholder="Ajouter des détails supplémentaires..."
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 className="mt-2"
@@ -202,14 +203,14 @@ export default function AdminQuotes() {
               onClick={() => setSelectedQuote(null)}
               data-testid="button-cancel-quote"
             >
-              Cancel
+              Annuler
             </Button>
             <Button
               onClick={handleSaveQuote}
               disabled={updateQuoteMutation.isPending || !quoteAmount}
               data-testid="button-save-quote"
             >
-              {updateQuoteMutation.isPending ? "Saving..." : "Save & Approve"}
+              {updateQuoteMutation.isPending ? "Enregistrement..." : "Enregistrer & Approuver"}
             </Button>
           </DialogFooter>
         </DialogContent>

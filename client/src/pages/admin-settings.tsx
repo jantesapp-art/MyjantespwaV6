@@ -27,17 +27,17 @@ export default function AdminSettings() {
 
   return (
     <div className="p-4 md:p-6 space-y-6">
-      <h1 className="text-3xl font-bold" data-testid="text-admin-settings-title">Settings</h1>
+      <h1 className="text-3xl font-bold" data-testid="text-admin-settings-title">Paramètres</h1>
 
       <Card>
         <CardHeader>
-          <CardTitle>Application Settings</CardTitle>
-          <CardDescription>Configure your MyJantes application</CardDescription>
+          <CardTitle>Paramètres de l'Application</CardTitle>
+          <CardDescription>Configurez votre application MyJantes</CardDescription>
         </CardHeader>
         <CardContent className="text-center py-12">
           <Settings className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
           <p className="text-muted-foreground">
-            Settings configuration will be available in future releases
+            La configuration des paramètres sera disponible dans les prochaines versions
           </p>
         </CardContent>
       </Card>

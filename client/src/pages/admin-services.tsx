@@ -28,8 +28,8 @@ export default function AdminServices() {
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin)) {
       toast({
-        title: "Unauthorized",
-        description: "You don't have permission to access this page.",
+        title: "Non autorisé",
+        description: "Vous n'avez pas la permission d'accéder à cette page.",
         variant: "destructive",
       });
       setTimeout(() => {
@@ -49,8 +49,8 @@ export default function AdminServices() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Service created successfully",
+        title: "Succès",
+        description: "Service créé avec succès",
       });
       setIsDialogOpen(false);
       resetForm();
@@ -59,8 +59,8 @@ export default function AdminServices() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to create service",
+        title: "Erreur",
+        description: error.message || "Échec de la création du service",
         variant: "destructive",
       });
     },
@@ -72,8 +72,8 @@ export default function AdminServices() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Service updated successfully",
+        title: "Succès",
+        description: "Service mis à jour avec succès",
       });
       setIsDialogOpen(false);
       setEditingService(null);
@@ -83,8 +83,8 @@ export default function AdminServices() {
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to update service",
+        title: "Erreur",
+        description: error.message || "Échec de la mise à jour du service",
         variant: "destructive",
       });
     },
@@ -96,16 +96,16 @@ export default function AdminServices() {
     },
     onSuccess: () => {
       toast({
-        title: "Success",
-        description: "Service deleted successfully",
+        title: "Succès",
+        description: "Service supprimé avec succès",
       });
       queryClient.invalidateQueries({ queryKey: ["/api/admin/services"] });
       queryClient.invalidateQueries({ queryKey: ["/api/services"] });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error",
-        description: error.message || "Failed to delete service",
+        title: "Erreur",
+        description: error.message || "Échec de la suppression du service",
         variant: "destructive",
       });
     },
@@ -140,7 +140,7 @@ export default function AdminServices() {
   };
 
   const handleDelete = (id: string) => {
-    if (confirm("Are you sure you want to delete this service?")) {
+    if (confirm("Êtes-vous sûr de vouloir supprimer ce service?")) {
       deleteServiceMutation.mutate(id);
     }
   };
@@ -156,7 +156,7 @@ export default function AdminServices() {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div className="flex items-center justify-between gap-4 flex-wrap">
-        <h1 className="text-3xl font-bold" data-testid="text-admin-services-title">Service Management</h1>
+        <h1 className="text-3xl font-bold" data-testid="text-admin-services-title">Gestion des Services</h1>
         <Button
           onClick={() => {
             setEditingService(null);
@@ -166,13 +166,13 @@ export default function AdminServices() {
           data-testid="button-add-service"
         >
           <Plus className="h-4 w-4 mr-2" />
-          Add Service
+          Ajouter un Service
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>All Services</CardTitle>
+          <CardTitle>Tous les Services</CardTitle>
         </CardHeader>
         <CardContent>
           {servicesLoading ? (
@@ -183,7 +183,7 @@ export default function AdminServices() {
             </div>
           ) : services.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
-              <p>No services yet. Create one to get started!</p>
+              <p>Aucun service pour le moment. Créez-en un pour commencer!</p>
             </div>
           ) : (
             <div className="space-y-4">
@@ -200,7 +200,7 @@ export default function AdminServices() {
                     )}
                     <p className="text-sm text-muted-foreground mt-1">{service.description}</p>
                     {service.basePrice && (
-                      <p className="font-mono font-semibold mt-2">From ${service.basePrice}</p>
+                      <p className="font-mono font-semibold mt-2">À partir de ${service.basePrice}</p>
                     )}
                   </div>
                   <div className="flex gap-2">
@@ -231,33 +231,33 @@ export default function AdminServices() {
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>{editingService ? "Edit Service" : "Add New Service"}</DialogTitle>
+            <DialogTitle>{editingService ? "Modifier le Service" : "Ajouter un Nouveau Service"}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="service-name">Service Name</Label>
+              <Label htmlFor="service-name">Nom du Service</Label>
               <Input
                 id="service-name"
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                placeholder="e.g., Tire Replacement"
+                placeholder="ex. Remplacement de pneus"
                 className="mt-2"
                 data-testid="input-service-name"
               />
             </div>
             <div>
-              <Label htmlFor="service-category">Category</Label>
+              <Label htmlFor="service-category">Catégorie</Label>
               <Input
                 id="service-category"
                 value={formData.category}
                 onChange={(e) => setFormData({ ...formData, category: e.target.value })}
-                placeholder="e.g., Maintenance"
+                placeholder="ex. Entretien"
                 className="mt-2"
                 data-testid="input-service-category"
               />
             </div>
             <div>
-              <Label htmlFor="service-price">Base Price ($)</Label>
+              <Label htmlFor="service-price">Prix de Base ($)</Label>
               <Input
                 id="service-price"
                 type="number"
@@ -275,7 +275,7 @@ export default function AdminServices() {
                 id="service-description"
                 value={formData.description}
                 onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                placeholder="Describe the service..."
+                placeholder="Décrivez le service..."
                 className="mt-2"
                 rows={4}
                 data-testid="textarea-service-description"
@@ -292,14 +292,14 @@ export default function AdminServices() {
               }}
               data-testid="button-cancel-service"
             >
-              Cancel
+              Annuler
             </Button>
             <Button
               onClick={handleSave}
               disabled={createServiceMutation.isPending || updateServiceMutation.isPending || !formData.name}
               data-testid="button-save-service"
             >
-              {createServiceMutation.isPending || updateServiceMutation.isPending ? "Saving..." : "Save"}
+              {createServiceMutation.isPending || updateServiceMutation.isPending ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </DialogFooter>
         </DialogContent>

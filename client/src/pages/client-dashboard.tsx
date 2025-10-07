@@ -8,6 +8,7 @@ import { Link } from "wouter";
 import { FileText, Calendar, DollarSign, Plus } from "lucide-react";
 import { StatusBadge } from "@/components/status-badge";
 import { formatDistanceToNow } from "date-fns";
+import { fr } from "date-fns/locale";
 import type { Quote, Invoice, Reservation } from "@shared/schema";
 import { Skeleton } from "@/components/ui/skeleton";
 
@@ -141,7 +142,7 @@ export default function ClientDashboard() {
                   <div className="flex-1">
                     <p className="font-medium">Quote #{quote.id.slice(0, 8)}</p>
                     <p className="text-sm text-muted-foreground">
-                      {quote.createdAt && formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true })}
+                      {quote.createdAt && formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true, locale: fr })}
                     </p>
                   </div>
                   <div className="flex items-center gap-4">

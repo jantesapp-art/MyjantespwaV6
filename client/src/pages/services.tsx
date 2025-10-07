@@ -95,8 +95,8 @@ export default function Services() {
   return (
     <div className="p-4 md:p-6 space-y-6">
       <div>
-        <h1 className="text-3xl font-bold mb-2" data-testid="text-services-title">Our Services</h1>
-        <p className="text-muted-foreground">Browse our services and request a quote</p>
+        <h1 className="text-3xl font-bold mb-2" data-testid="text-services-title">Nos Services</h1>
+        <p className="text-muted-foreground">Parcourez nos services et demandez un devis</p>
       </div>
 
       {servicesLoading ? (
@@ -108,7 +108,7 @@ export default function Services() {
       ) : services.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent>
-            <p className="text-muted-foreground">No services available at the moment</p>
+            <p className="text-muted-foreground">Aucun service disponible pour le moment</p>
           </CardContent>
         </Card>
       ) : (
@@ -124,10 +124,10 @@ export default function Services() {
                 )}
               </CardHeader>
               <CardContent className="flex-1">
-                <p className="text-sm text-muted-foreground">{service.description || "No description available"}</p>
+                <p className="text-sm text-muted-foreground">{service.description || "Aucune description disponible"}</p>
                 {service.basePrice && (
                   <p className="text-xl font-bold font-mono mt-4">
-                    From ${service.basePrice}
+                    À partir de ${service.basePrice}
                   </p>
                 )}
               </CardContent>
@@ -137,7 +137,7 @@ export default function Services() {
                   onClick={() => setSelectedService(service)}
                   data-testid={`button-request-quote-${service.id}`}
                 >
-                  Request Quote
+                  Demander un Devis
                 </Button>
               </CardFooter>
             </Card>
@@ -148,17 +148,17 @@ export default function Services() {
       <Dialog open={!!selectedService} onOpenChange={(open) => !open && setSelectedService(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Request Quote</DialogTitle>
+            <DialogTitle>Demander un Devis</DialogTitle>
             <DialogDescription>
-              Provide details for your {selectedService?.name} service request
+              Fournir les détails pour votre demande de service {selectedService?.name}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div>
-              <Label htmlFor="request-details">Request Details</Label>
+              <Label htmlFor="request-details">Détails de la Demande</Label>
               <Textarea
                 id="request-details"
-                placeholder="Describe your requirements..."
+                placeholder="Décrivez vos besoins..."
                 value={requestDetails}
                 onChange={(e) => setRequestDetails(e.target.value)}
                 className="mt-2"
@@ -173,14 +173,14 @@ export default function Services() {
               onClick={() => setSelectedService(null)}
               data-testid="button-cancel-request"
             >
-              Cancel
+              Annuler
             </Button>
             <Button
               onClick={handleRequestQuote}
               disabled={requestQuoteMutation.isPending || !requestDetails.trim()}
               data-testid="button-submit-request"
             >
-              {requestQuoteMutation.isPending ? "Submitting..." : "Submit Request"}
+              {requestQuoteMutation.isPending ? "Envoi..." : "Soumettre la Demande"}
             </Button>
           </DialogFooter>
         </DialogContent>

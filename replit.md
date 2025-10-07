@@ -7,8 +7,9 @@ MyJantes est une Progressive Web Application (PWA) conçue pour la gestion de se
 ## Préférences utilisateur
 
 Style de communication préféré : Langue simple et quotidienne.
-Langue de l'interface : Français
-Thème de couleur : Rouge vif (primary: 0 84% 60%) au lieu du bleu professionnel
+Langue de l'interface : Français (100% traduit)
+Thème de couleur : Rouge vif (primary: 0 84% 60%) remplaçant le bleu professionnel
+État : Interface entièrement traduite en français, thème rouge appliqué
 
 ## System Architecture
 
