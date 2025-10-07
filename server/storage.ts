@@ -26,12 +26,13 @@ import { db } from "./db";
 import { eq, desc, and, sql } from "drizzle-orm";
 
 export interface IStorage {
-  // User operations (Required for Replit Auth)
+  // User operations
   getUser(id: string): Promise<User | undefined>;
+  getUserByEmail(email: string): Promise<User | undefined>;
   upsertUser(user: UpsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: string, userData: Partial<User>): Promise<User>;
-  createUser(user: { email: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User>;
+  createUser(user: { email: string; password?: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User>;
   deleteUser(id: string): Promise<void>;
 
   // Service operations
@@ -81,6 +82,11 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
+  async getUserByEmail(email: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.email, email));
+    return user;
+  }
+
   async upsertUser(userData: UpsertUser): Promise<User> {
     const [user] = await db
       .insert(users)
@@ -109,11 +115,12 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(userData: { email: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User> {
+  async createUser(userData: { email: string; password?: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User> {
     const [user] = await db
       .insert(users)
       .values({
         email: userData.email,
+        password: userData.password,
         firstName: userData.firstName,
         lastName: userData.lastName,
         role: userData.role || "client",

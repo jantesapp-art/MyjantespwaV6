@@ -1,10 +1,10 @@
-// Reference: javascript_log_in_with_replit, javascript_websocket blueprints
+// Local authentication with email/password
 import type { Express } from "express";
 import { createServer, type Server } from "http";
 import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { storage } from "./storage";
-import { setupAuth, isAuthenticated, isAdmin } from "./replitAuth";
+import { setupAuth, isAuthenticated, isAdmin } from "./localAuth";
 import { insertServiceSchema, insertQuoteSchema, insertInvoiceSchema, insertReservationSchema } from "@shared/schema";
 
 // WebSocket clients map
@@ -17,7 +17,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Auth routes
   app.get('/api/auth/user', isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const user = await storage.getUser(userId);
       res.json(user);
     } catch (error) {
@@ -83,7 +83,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Quote routes
   app.get("/api/quotes", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const quotes = await storage.getQuotes(userId);
       res.json(quotes);
     } catch (error) {
@@ -94,7 +94,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/quotes", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const validatedData = insertQuoteSchema.parse({
         ...req.body,
         clientId: userId,
@@ -221,7 +221,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Invoice routes
   app.get("/api/invoices", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const invoices = await storage.getInvoices(userId);
       res.json(invoices);
     } catch (error) {
@@ -323,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Reservation routes
   app.get("/api/reservations", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const reservations = await storage.getReservations(userId);
       res.json(reservations);
     } catch (error) {
@@ -375,7 +375,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Notification routes
   app.get("/api/notifications", isAuthenticated, async (req: any, res) => {
     try {
-      const userId = req.user.claims.sub;
+      const userId = req.user.id;
       const notifications = await storage.getNotifications(userId);
       res.json(notifications);
     } catch (error) {
@@ -455,7 +455,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const { ObjectStorageService, ObjectNotFoundError } = await import("./objectStorage");
 
   app.get("/objects/:objectPath(*)", isAuthenticated, async (req: any, res) => {
-    const userId = req.user.claims.sub;
+    const userId = req.user.id;
     const objectStorageService = new ObjectStorageService();
     try {
       const objectFile = await objectStorageService.getObjectEntityFile(req.path);
