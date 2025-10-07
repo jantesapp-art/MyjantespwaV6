@@ -9,6 +9,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { isUnauthorizedError } from "@/lib/authUtils";
 
@@ -17,6 +18,7 @@ export default function Services() {
   const { isAuthenticated, isLoading } = useAuth();
   const [selectedService, setSelectedService] = useState<Service | null>(null);
   const [requestDetails, setRequestDetails] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<"cash" | "other">("other");
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
@@ -38,7 +40,7 @@ export default function Services() {
   });
 
   const requestQuoteMutation = useMutation({
-    mutationFn: async (data: { serviceId: string; requestDetails: any }) => {
+    mutationFn: async (data: { serviceId: string; paymentMethod: "cash" | "other"; requestDetails: any }) => {
       return apiRequest("POST", "/api/quotes", data);
     },
     onSuccess: () => {
@@ -48,6 +50,7 @@ export default function Services() {
       });
       setSelectedService(null);
       setRequestDetails("");
+      setPaymentMethod("other");
       queryClient.invalidateQueries({ queryKey: ["/api/quotes"] });
     },
     onError: (error: Error) => {
@@ -75,6 +78,7 @@ export default function Services() {
     
     requestQuoteMutation.mutate({
       serviceId: selectedService.id,
+      paymentMethod,
       requestDetails: { message: requestDetails },
     });
   };
@@ -154,6 +158,18 @@ export default function Services() {
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
+            <div>
+              <Label htmlFor="payment-method">Moyen de Paiement</Label>
+              <Select value={paymentMethod} onValueChange={(value: "cash" | "other") => setPaymentMethod(value)}>
+                <SelectTrigger id="payment-method" className="mt-2" data-testid="select-payment-method">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="cash">Espèces</SelectItem>
+                  <SelectItem value="other">Autres Moyens</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div>
               <Label htmlFor="request-details">Détails de la Demande</Label>
               <Textarea
