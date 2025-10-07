@@ -184,25 +184,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: "Quote not found" });
       }
       
-      // Get or initialize counter for payment type
+      // Atomically get next invoice number (handles initialization and increment)
       const paymentType = quote.paymentMethod === "cash" ? "cash" : "other";
-      let counter = await storage.getInvoiceCounter(paymentType);
-      
-      if (!counter) {
-        // Initialize counter if it doesn't exist
-        counter = await storage.createInvoiceCounter({
-          paymentType,
-          currentNumber: 0,
-        });
-      }
-      
-      // Increment counter
-      const newNumber = counter.currentNumber + 1;
-      await storage.updateInvoiceCounter(paymentType, newNumber);
+      const counter = await storage.incrementInvoiceCounter(paymentType);
       
       // Generate invoice number: MY-INV-ESP00000001 or MY-INV-OTH00000001
       const prefix = paymentType === "cash" ? "MY-INV-ESP" : "MY-INV-OTH";
-      const paddedNumber = newNumber.toString().padStart(8, "0");
+      const paddedNumber = counter.currentNumber.toString().padStart(8, "0");
       const invoiceNumber = `${prefix}${paddedNumber}`;
       
       // Create invoice with generated number
