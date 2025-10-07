@@ -10,6 +10,7 @@ import {
   SidebarMenuItem,
 } from "@/components/ui/sidebar";
 import { useLocation } from "wouter";
+import logoMyJantes from "@assets/logo-myjantes-n2iUZrkN_1759796960103.png";
 
 const menuItems = [
   {
@@ -51,7 +52,16 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel className="text-lg font-bold px-4 py-6">MyJantes Admin</SidebarGroupLabel>
+          <div className="px-4 py-6">
+            <div className="bg-white rounded-lg p-3 border border-border inline-block">
+              <img 
+                src={logoMyJantes} 
+                alt="MyJantes Logo" 
+                className="h-12 w-auto"
+                data-testid="logo-myjantes"
+              />
+            </div>
+          </div>
           <SidebarGroupContent>
             <SidebarMenu>
               {menuItems.map((item) => (
