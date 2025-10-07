@@ -112,14 +112,18 @@ export async function setupAuth(app: Express) {
     })(req, res, next);
   });
 
-  // Register route (admin only - pour créer des comptes)
+  // Register route (public - pour créer des comptes clients uniquement)
   app.post("/api/register", async (req, res) => {
     try {
-      const { email, password, firstName, lastName, role } = req.body;
+      const { email, password, firstName, lastName, role, companyName, siret, tvaNumber, companyAddress } = req.body;
 
       if (!email || !password) {
         return res.status(400).json({ message: "Email et mot de passe requis" });
       }
+
+      // Restreindre les rôles privilégiés - seuls les clients peuvent s'inscrire publiquement
+      const allowedRoles = ["client", "client_professionnel"];
+      const userRole = role && allowedRoles.includes(role) ? role : "client";
 
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
@@ -128,13 +132,23 @@ export async function setupAuth(app: Express) {
 
       const hashedPassword = await hashPassword(password);
       
-      const newUser = await storage.createUser({
+      const userData: any = {
         email,
         password: hashedPassword,
         firstName: firstName || null,
         lastName: lastName || null,
-        role: role || "client",
-      });
+        role: userRole,
+      };
+
+      // Ajouter les champs entreprise si c'est un client professionnel
+      if (userRole === "client_professionnel") {
+        userData.companyName = companyName || null;
+        userData.siret = siret || null;
+        userData.tvaNumber = tvaNumber || null;
+        userData.companyAddress = companyAddress || null;
+      }
+      
+      const newUser = await storage.createUser(userData);
 
       res.json({ message: "Compte créé avec succès", userId: newUser.id });
     } catch (error) {
@@ -173,7 +187,7 @@ export const isAdmin: RequestHandler = async (req, res, next) => {
   }
 
   const user = req.user as any;
-  if (!user || user.role !== "admin") {
+  if (!user || (user.role !== "admin" && user.role !== "employe")) {
     return res.status(403).json({ message: "Accès administrateur requis" });
   }
 

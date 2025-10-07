@@ -36,7 +36,12 @@ export const users = pgTable("users", {
   firstName: varchar("first_name"),
   lastName: varchar("last_name"),
   profileImageUrl: varchar("profile_image_url"),
-  role: varchar("role", { enum: ["client", "admin"] }).notNull().default("client"),
+  role: varchar("role", { enum: ["client", "client_professionnel", "employe", "admin"] }).notNull().default("client"),
+  // Champs pour clients professionnels
+  companyName: varchar("company_name"),
+  siret: varchar("siret", { length: 14 }),
+  tvaNumber: varchar("tva_number", { length: 20 }),
+  companyAddress: text("company_address"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
 });

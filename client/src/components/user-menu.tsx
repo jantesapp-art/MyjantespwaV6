@@ -11,9 +11,40 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { Badge } from "@/components/ui/badge";
+import { queryClient } from "@/lib/queryClient";
+import { useLocation } from "wouter";
 
 export function UserMenu() {
   const { user } = useAuth();
+  const [, setLocation] = useLocation();
+
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/logout", {
+        method: "POST",
+        credentials: "include",
+      });
+      queryClient.clear();
+      setLocation("/login");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const getRoleLabel = (role?: string) => {
+    switch (role) {
+      case "admin":
+        return "Administrateur";
+      case "employe":
+        return "Employé";
+      case "client_professionnel":
+        return "Client Professionnel";
+      case "client":
+        return "Client";
+      default:
+        return "Utilisateur";
+    }
+  };
 
   if (!user) return null;
 
@@ -49,16 +80,14 @@ export function UserMenu() {
               <p className="text-xs leading-none text-muted-foreground">{user.email}</p>
             )}
             <Badge variant="outline" className="w-fit mt-2">
-              {user.role === "admin" ? "Administrateur" : "Client"}
+              {getRoleLabel(user.role)}
             </Badge>
           </div>
         </DropdownMenuLabel>
         <DropdownMenuSeparator />
-        <DropdownMenuItem asChild>
-          <a href="/api/logout" className="cursor-pointer" data-testid="button-logout">
-            <LogOut className="mr-2 h-4 w-4" />
-            <span>Déconnexion</span>
-          </a>
+        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer" data-testid="button-logout">
+          <LogOut className="mr-2 h-4 w-4" />
+          <span>Déconnexion</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

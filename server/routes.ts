@@ -5,10 +5,20 @@ import { WebSocketServer, WebSocket } from "ws";
 import { z } from "zod";
 import { storage } from "./storage";
 import { setupAuth, isAuthenticated, isAdmin } from "./localAuth";
-import { insertServiceSchema, insertQuoteSchema, insertInvoiceSchema, insertReservationSchema } from "@shared/schema";
+import { insertServiceSchema, insertQuoteSchema, insertInvoiceSchema, insertReservationSchema, type User } from "@shared/schema";
 
 // WebSocket clients map
 const wsClients = new Map<string, WebSocket>();
+
+// Utility function to sanitize user objects (remove password)
+function sanitizeUser<T extends User>(user: T): Omit<T, 'password'> {
+  const { password, ...sanitized } = user;
+  return sanitized;
+}
+
+function sanitizeUsers<T extends User>(users: T[]): Omit<T, 'password'>[] {
+  return users.map(sanitizeUser);
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Auth middleware
@@ -19,7 +29,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const userId = req.user.id;
       const user = await storage.getUser(userId);
-      res.json(user);
+      
+      if (!user) {
+        return res.status(404).json({ message: "User not found" });
+      }
+
+      // Sanitize user object - remove password before sending to client
+      res.json(sanitizeUser(user));
     } catch (error) {
       console.error("Error fetching user:", error);
       res.status(500).json({ message: "Failed to fetch user" });
@@ -399,7 +415,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/admin/users", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const users = await storage.getAllUsers();
-      res.json(users);
+      // Sanitize all users - remove passwords
+      res.json(sanitizeUsers(users));
     } catch (error) {
       console.error("Error fetching users:", error);
       res.status(500).json({ message: "Failed to fetch users" });
@@ -410,13 +427,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const updateSchema = z.object({
-        role: z.enum(["client", "admin"]).optional(),
+        role: z.enum(["client", "client_professionnel", "employe", "admin"]).optional(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
       });
       const validatedData = updateSchema.parse(req.body);
       const user = await storage.updateUser(id, validatedData);
-      res.json(user);
+      res.json(sanitizeUser(user));
     } catch (error: any) {
       console.error("Error updating user:", error);
       res.status(400).json({ message: error.message || "Failed to update user" });
@@ -429,11 +446,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         email: z.string().email(),
         firstName: z.string().optional(),
         lastName: z.string().optional(),
-        role: z.enum(["client", "admin"]).optional(),
+        role: z.enum(["client", "client_professionnel", "employe", "admin"]).optional(),
       });
       const validatedData = createSchema.parse(req.body);
       const user = await storage.createUser(validatedData);
-      res.json(user);
+      res.json(sanitizeUser(user));
     } catch (error: any) {
       console.error("Error creating user:", error);
       res.status(400).json({ message: error.message || "Failed to create user" });

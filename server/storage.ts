@@ -32,7 +32,7 @@ export interface IStorage {
   upsertUser(user: UpsertUser): Promise<User>;
   getAllUsers(): Promise<User[]>;
   updateUser(id: string, userData: Partial<User>): Promise<User>;
-  createUser(user: { email: string; password?: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User>;
+  createUser(user: { email: string; password?: string; firstName?: string; lastName?: string; role?: "client" | "client_professionnel" | "employe" | "admin"; companyName?: string; siret?: string; tvaNumber?: string; companyAddress?: string }): Promise<User>;
   deleteUser(id: string): Promise<void>;
 
   // Service operations
@@ -115,7 +115,7 @@ export class DatabaseStorage implements IStorage {
     return user;
   }
 
-  async createUser(userData: { email: string; password?: string; firstName?: string; lastName?: string; role?: "client" | "admin" }): Promise<User> {
+  async createUser(userData: { email: string; password?: string; firstName?: string; lastName?: string; role?: "client" | "client_professionnel" | "employe" | "admin"; companyName?: string; siret?: string; tvaNumber?: string; companyAddress?: string }): Promise<User> {
     const [user] = await db
       .insert(users)
       .values({
@@ -124,6 +124,10 @@ export class DatabaseStorage implements IStorage {
         firstName: userData.firstName,
         lastName: userData.lastName,
         role: userData.role || "client",
+        companyName: userData.companyName,
+        siret: userData.siret,
+        tvaNumber: userData.tvaNumber,
+        companyAddress: userData.companyAddress,
       })
       .returning();
     return user;
