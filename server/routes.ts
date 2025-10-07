@@ -530,7 +530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
     ws.on('close', () => {
       // Remove client from map
-      for (const [userId, client] of wsClients.entries()) {
+      for (const [userId, client] of Array.from(wsClients.entries())) {
         if (client === ws) {
           wsClients.delete(userId);
           console.log(`User ${userId} disconnected`);
