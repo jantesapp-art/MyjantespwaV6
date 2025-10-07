@@ -59,6 +59,7 @@ export const quotes = pgTable("quotes", {
   clientId: varchar("client_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   serviceId: varchar("service_id").notNull().references(() => services.id, { onDelete: 'cascade' }),
   status: varchar("status", { enum: ["pending", "approved", "rejected", "completed"] }).notNull().default("pending"),
+  paymentMethod: varchar("payment_method", { enum: ["cash", "other"] }).notNull().default("other"),
   requestDetails: jsonb("request_details"), // Custom form data from client
   quoteAmount: decimal("quote_amount", { precision: 10, scale: 2 }),
   notes: text("notes"),
@@ -105,6 +106,14 @@ export const notifications = pgTable("notifications", {
   relatedId: varchar("related_id"), // ID of related quote/invoice/reservation
   isRead: boolean("is_read").notNull().default(false),
   createdAt: timestamp("created_at").defaultNow(),
+});
+
+// Invoice counters for incremental numbering
+export const invoiceCounters = pgTable("invoice_counters", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  paymentType: varchar("payment_type", { enum: ["cash", "other"] }).notNull().unique(),
+  currentNumber: integer("current_number").notNull().default(0),
+  updatedAt: timestamp("updated_at").defaultNow(),
 });
 
 // Relations
@@ -173,6 +182,7 @@ export const insertQuoteSchema = createInsertSchema(quotes).omit({ id: true, cre
 export const insertInvoiceSchema = createInsertSchema(invoices).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertReservationSchema = createInsertSchema(reservations).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
+export const insertInvoiceCounterSchema = createInsertSchema(invoiceCounters).omit({ id: true, updatedAt: true });
 
 // Types
 export type UpsertUser = typeof users.$inferInsert;
@@ -187,3 +197,5 @@ export type InsertReservation = z.infer<typeof insertReservationSchema>;
 export type Reservation = typeof reservations.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
 export type Notification = typeof notifications.$inferSelect;
+export type InsertInvoiceCounter = z.infer<typeof insertInvoiceCounterSchema>;
+export type InvoiceCounter = typeof invoiceCounters.$inferSelect;
