@@ -17,6 +17,7 @@ import { formatDistanceToNow, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
 import { Check, X, FileText, Calendar, Download, Plus } from "lucide-react";
 import { generateQuotePDF } from "@/lib/pdf-generator";
+import { ObjectUploader } from "@/components/ObjectUploader";
 
 export default function AdminQuotes() {
   const { toast } = useToast();
@@ -38,6 +39,7 @@ export default function AdminQuotes() {
   const [newQuoteServiceId, setNewQuoteServiceId] = useState("");
   const [newQuotePaymentMethod, setNewQuotePaymentMethod] = useState<"cash" | "other">("other");
   const [newQuoteDetails, setNewQuoteDetails] = useState("");
+  const [quoteMediaFiles, setQuoteMediaFiles] = useState<Array<{key: string; type: string}>>([]);
 
   useEffect(() => {
     if (!isLoading && (!isAuthenticated || !isAdmin)) {
@@ -201,7 +203,7 @@ export default function AdminQuotes() {
   };
 
   const createNewQuoteMutation = useMutation({
-    mutationFn: async (data: { clientId: string; serviceId: string; paymentMethod: string; requestDetails?: any }) => {
+    mutationFn: async (data: { clientId: string; serviceId: string; paymentMethod: string; requestDetails?: any; mediaFiles?: Array<{key: string; type: string}> }) => {
       return apiRequest("POST", "/api/admin/quotes", data);
     },
     onSuccess: () => {
@@ -214,6 +216,7 @@ export default function AdminQuotes() {
       setNewQuoteServiceId("");
       setNewQuotePaymentMethod("other");
       setNewQuoteDetails("");
+      setQuoteMediaFiles([]);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/quotes"] });
     },
     onError: (error: Error) => {
@@ -234,11 +237,23 @@ export default function AdminQuotes() {
       });
       return;
     }
+    
+    const imageCount = quoteMediaFiles.filter(f => f.type.startsWith('image/')).length;
+    if (imageCount < 6) {
+      toast({
+        title: "Erreur",
+        description: `Au moins 6 images sont requises (${imageCount}/6)`,
+        variant: "destructive",
+      });
+      return;
+    }
+    
     createNewQuoteMutation.mutate({
       clientId: newQuoteClientId,
       serviceId: newQuoteServiceId,
       paymentMethod: newQuotePaymentMethod,
       requestDetails: newQuoteDetails ? { notes: newQuoteDetails } : undefined,
+      mediaFiles: quoteMediaFiles,
     });
   };
 
@@ -595,18 +610,45 @@ export default function AdminQuotes() {
                 data-testid="textarea-new-quote-details"
               />
             </div>
+            <div>
+              <Label>Images et Vidéos</Label>
+              <p className="text-sm text-muted-foreground mb-2">
+                Minimum 6 images requises. Vidéos optionnelles.
+              </p>
+              <ObjectUploader
+                onUploadComplete={(files) => setQuoteMediaFiles(files)}
+                accept={{
+                  'image/*': ['.jpg', '.jpeg', '.png', '.webp'],
+                  'video/*': ['.mp4', '.webm', '.mov']
+                }}
+                data-testid="uploader-quote-media"
+              />
+              {quoteMediaFiles.length > 0 && quoteMediaFiles.filter(f => f.type.startsWith('image/')).length < 6 && (
+                <p className="text-sm text-destructive mt-2">
+                  Au moins 6 images sont requises ({quoteMediaFiles.filter(f => f.type.startsWith('image/')).length}/6)
+                </p>
+              )}
+            </div>
           </div>
           <DialogFooter>
             <Button
               variant="outline"
-              onClick={() => setCreateQuoteDialog(false)}
+              onClick={() => {
+                setCreateQuoteDialog(false);
+                setQuoteMediaFiles([]);
+              }}
               data-testid="button-cancel-new-quote"
             >
               Annuler
             </Button>
             <Button
               onClick={handleCreateNewQuote}
-              disabled={createNewQuoteMutation.isPending || !newQuoteClientId || !newQuoteServiceId}
+              disabled={
+                createNewQuoteMutation.isPending || 
+                !newQuoteClientId || 
+                !newQuoteServiceId ||
+                quoteMediaFiles.filter(f => f.type.startsWith('image/')).length < 6
+              }
               data-testid="button-save-new-quote"
             >
               {createNewQuoteMutation.isPending ? "Création..." : "Créer Devis"}

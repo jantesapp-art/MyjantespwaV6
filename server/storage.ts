@@ -66,6 +66,10 @@ export interface IStorage {
   getInvoiceCounter(paymentType: "cash" | "other"): Promise<InvoiceCounter | undefined>;
   createInvoiceCounter(counter: InsertInvoiceCounter): Promise<InvoiceCounter>;
   incrementInvoiceCounter(paymentType: "cash" | "other"): Promise<InvoiceCounter>;
+
+  // Media operations
+  createQuoteMedia(media: { quoteId: string; filePath: string; fileType: string; fileName?: string }): Promise<void>;
+  createInvoiceMedia(media: { invoiceId: string; filePath: string; fileType: string; fileName?: string }): Promise<void>;
 }
 
 export class DatabaseStorage implements IStorage {
@@ -254,6 +258,27 @@ export class DatabaseStorage implements IStorage {
       })
       .returning();
     return counter;
+  }
+
+  // Media operations
+  async createQuoteMedia(media: { quoteId: string; filePath: string; fileType: string; fileName?: string }): Promise<void> {
+    const { quoteMedia } = await import("@shared/schema");
+    await db.insert(quoteMedia).values({
+      quoteId: media.quoteId,
+      filePath: media.filePath,
+      fileType: media.fileType as "image" | "video",
+      fileName: media.fileName || media.filePath.split('/').pop() || 'unknown',
+    });
+  }
+
+  async createInvoiceMedia(media: { invoiceId: string; filePath: string; fileType: string; fileName?: string }): Promise<void> {
+    const { invoiceMedia } = await import("@shared/schema");
+    await db.insert(invoiceMedia).values({
+      invoiceId: media.invoiceId,
+      filePath: media.filePath,
+      fileType: media.fileType as "image" | "video",
+      fileName: media.fileName || media.filePath.split('/').pop() || 'unknown',
+    });
   }
 }
 

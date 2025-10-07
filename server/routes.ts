@@ -124,11 +124,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/quotes", isAuthenticated, isAdmin, async (req, res) => {
     try {
+      const { mediaFiles, ...quoteData } = req.body;
+      
+      // Validate minimum 6 images requirement
+      if (!mediaFiles || !Array.isArray(mediaFiles)) {
+        return res.status(400).json({ message: "Media files are required" });
+      }
+      
+      const imageCount = mediaFiles.filter((f: any) => f.type.startsWith('image/')).length;
+      if (imageCount < 6) {
+        return res.status(400).json({ 
+          message: `Au moins 6 images sont requises (${imageCount}/6 fournis)` 
+        });
+      }
+      
       const validatedData = insertQuoteSchema.parse({
-        ...req.body,
+        ...quoteData,
         status: "pending",
       });
       const quote = await storage.createQuote(validatedData);
+      
+      // Create media entries
+      for (const file of mediaFiles) {
+        await storage.createQuoteMedia({
+          quoteId: quote.id,
+          filePath: file.key,
+          fileType: file.type.startsWith('image/') ? 'image' : 'video',
+          fileName: file.name,
+        });
+      }
       
       // Create notification for client
       await storage.createNotification({
