@@ -40,6 +40,11 @@ export default function AdminQuotes() {
   const [newQuoteServiceId, setNewQuoteServiceId] = useState("");
   const [newQuotePaymentMethod, setNewQuotePaymentMethod] = useState<"cash" | "other">("other");
   const [newQuoteDetails, setNewQuoteDetails] = useState("");
+  const [newQuoteWheelCount, setNewQuoteWheelCount] = useState<string>("4");
+  const [newQuoteDiameter, setNewQuoteDiameter] = useState("");
+  const [newQuotePriceHT, setNewQuotePriceHT] = useState("");
+  const [newQuoteTaxRate, setNewQuoteTaxRate] = useState("20");
+  const [newQuoteProductDetails, setNewQuoteProductDetails] = useState("");
   const [quoteMediaFiles, setQuoteMediaFiles] = useState<Array<{key: string; type: string; name: string}>>([]);
 
   useEffect(() => {
@@ -218,7 +223,20 @@ export default function AdminQuotes() {
   };
 
   const createNewQuoteMutation = useMutation({
-    mutationFn: async (data: { clientId: string; serviceId: string; paymentMethod: string; requestDetails?: any; mediaFiles?: Array<{key: string; type: string; name: string}> }) => {
+    mutationFn: async (data: { 
+      clientId: string; 
+      serviceId: string; 
+      paymentMethod: string; 
+      requestDetails?: any; 
+      mediaFiles?: Array<{key: string; type: string; name: string}>;
+      wheelCount?: number;
+      diameter?: string;
+      priceExcludingTax?: string;
+      taxRate?: string;
+      taxAmount?: string;
+      productDetails?: string;
+      quoteAmount?: string;
+    }) => {
       return apiRequest("POST", "/api/admin/quotes", data);
     },
     onSuccess: () => {
@@ -231,6 +249,11 @@ export default function AdminQuotes() {
       setNewQuoteServiceId("");
       setNewQuotePaymentMethod("other");
       setNewQuoteDetails("");
+      setNewQuoteWheelCount("4");
+      setNewQuoteDiameter("");
+      setNewQuotePriceHT("");
+      setNewQuoteTaxRate("20");
+      setNewQuoteProductDetails("");
       setQuoteMediaFiles([]);
       queryClient.invalidateQueries({ queryKey: ["/api/admin/quotes"] });
     },
@@ -263,12 +286,25 @@ export default function AdminQuotes() {
       return;
     }
     
+    // Calcul du montant TTC
+    const priceHT = parseFloat(newQuotePriceHT) || 0;
+    const taxRate = parseFloat(newQuoteTaxRate) || 0;
+    const taxAmount = (priceHT * taxRate) / 100;
+    const totalAmount = priceHT + taxAmount;
+    
     createNewQuoteMutation.mutate({
       clientId: newQuoteClientId,
       serviceId: newQuoteServiceId,
       paymentMethod: newQuotePaymentMethod,
       requestDetails: newQuoteDetails ? { notes: newQuoteDetails } : undefined,
       mediaFiles: quoteMediaFiles,
+      wheelCount: parseInt(newQuoteWheelCount),
+      diameter: newQuoteDiameter,
+      priceExcludingTax: newQuotePriceHT,
+      taxRate: newQuoteTaxRate,
+      taxAmount: taxAmount.toFixed(2),
+      productDetails: newQuoteProductDetails,
+      quoteAmount: totalAmount.toFixed(2),
     });
   };
 
@@ -639,11 +675,95 @@ export default function AdminQuotes() {
                 </SelectContent>
               </Select>
             </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-quote-wheel-count">Nombre de jantes</Label>
+                <Select value={newQuoteWheelCount} onValueChange={setNewQuoteWheelCount}>
+                  <SelectTrigger className="mt-2" data-testid="select-new-quote-wheel-count">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 jante</SelectItem>
+                    <SelectItem value="2">2 jantes</SelectItem>
+                    <SelectItem value="3">3 jantes</SelectItem>
+                    <SelectItem value="4">4 jantes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label htmlFor="new-quote-diameter">Diamètre</Label>
+                <Input
+                  id="new-quote-diameter"
+                  type="text"
+                  placeholder="Ex: 17 pouces"
+                  value={newQuoteDiameter}
+                  onChange={(e) => setNewQuoteDiameter(e.target.value)}
+                  className="mt-2"
+                  data-testid="input-new-quote-diameter"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="new-quote-price-ht">Prix HT (€)</Label>
+                <Input
+                  id="new-quote-price-ht"
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={newQuotePriceHT}
+                  onChange={(e) => setNewQuotePriceHT(e.target.value)}
+                  className="mt-2"
+                  data-testid="input-new-quote-price-ht"
+                />
+              </div>
+              <div>
+                <Label htmlFor="new-quote-tax-rate">TVA (%)</Label>
+                <Input
+                  id="new-quote-tax-rate"
+                  type="number"
+                  step="0.01"
+                  placeholder="20"
+                  value={newQuoteTaxRate}
+                  onChange={(e) => setNewQuoteTaxRate(e.target.value)}
+                  className="mt-2"
+                  data-testid="input-new-quote-tax-rate"
+                />
+              </div>
+            </div>
+            {newQuotePriceHT && newQuoteTaxRate && (
+              <div className="p-3 bg-muted rounded-md">
+                <div className="flex justify-between items-center text-sm">
+                  <span>Prix HT:</span>
+                  <span className="font-mono">{parseFloat(newQuotePriceHT || "0").toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between items-center text-sm mt-1">
+                  <span>TVA ({newQuoteTaxRate}%):</span>
+                  <span className="font-mono">{((parseFloat(newQuotePriceHT || "0") * parseFloat(newQuoteTaxRate || "0")) / 100).toFixed(2)} €</span>
+                </div>
+                <div className="flex justify-between items-center font-bold mt-2 pt-2 border-t border-border">
+                  <span>Prix TTC:</span>
+                  <span className="font-mono">{(parseFloat(newQuotePriceHT || "0") + (parseFloat(newQuotePriceHT || "0") * parseFloat(newQuoteTaxRate || "0")) / 100).toFixed(2)} €</span>
+                </div>
+              </div>
+            )}
             <div>
-              <Label htmlFor="new-quote-details">Détails (optionnel)</Label>
+              <Label htmlFor="new-quote-product-details">Détails du produit</Label>
+              <Textarea
+                id="new-quote-product-details"
+                placeholder="Description du produit, références, caractéristiques..."
+                value={newQuoteProductDetails}
+                onChange={(e) => setNewQuoteProductDetails(e.target.value)}
+                className="mt-2"
+                rows={3}
+                data-testid="textarea-new-quote-product-details"
+              />
+            </div>
+            <div>
+              <Label htmlFor="new-quote-details">Notes additionnelles (optionnel)</Label>
               <Textarea
                 id="new-quote-details"
-                placeholder="Détails de la demande..."
+                placeholder="Notes complémentaires..."
                 value={newQuoteDetails}
                 onChange={(e) => setNewQuoteDetails(e.target.value)}
                 className="mt-2"

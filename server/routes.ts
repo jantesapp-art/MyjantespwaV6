@@ -124,7 +124,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post("/api/admin/quotes", isAuthenticated, isAdmin, async (req, res) => {
     try {
-      const { mediaFiles, ...quoteData } = req.body;
+      const { mediaFiles, wheelCount, diameter, priceExcludingTax, taxRate, taxAmount, productDetails, quoteAmount, ...quoteData } = req.body;
       
       // Validate minimum 6 images requirement
       if (!mediaFiles || !Array.isArray(mediaFiles)) {
@@ -140,6 +140,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = insertQuoteSchema.parse({
         ...quoteData,
+        wheelCount: wheelCount ? parseInt(wheelCount) : null,
+        diameter,
+        priceExcludingTax,
+        taxRate,
+        taxAmount,
+        productDetails,
+        quoteAmount,
         status: "pending",
       });
       const quote = await storage.createQuote(validatedData);
