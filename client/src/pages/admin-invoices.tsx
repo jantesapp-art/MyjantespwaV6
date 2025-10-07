@@ -190,8 +190,25 @@ export default function AdminInvoices() {
                       <p className="font-semibold font-mono">{invoice.invoiceNumber}</p>
                       <StatusBadge status={invoice.status as any} />
                     </div>
-                    <p className="text-sm text-muted-foreground">ID Client: {invoice.clientId.slice(0, 8)}</p>
-                    <p className="text-sm text-muted-foreground">ID Devis: {invoice.quoteId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">Client: {invoice.clientId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground">Devis: {invoice.quoteId.slice(0, 8)}</p>
+                    {invoice.wheelCount && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Jantes:</span> {invoice.wheelCount} 
+                        {invoice.diameter && <span> | <span className="font-medium">Diamètre:</span> {invoice.diameter}</span>}
+                      </p>
+                    )}
+                    {invoice.priceExcludingTax && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Prix HT:</span> {parseFloat(invoice.priceExcludingTax).toFixed(2)} € 
+                        {invoice.taxRate && <span> | <span className="font-medium">TVA:</span> {parseFloat(invoice.taxRate).toFixed(0)}%</span>}
+                      </p>
+                    )}
+                    {invoice.productDetails && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                        <span className="font-medium">Produits:</span> {invoice.productDetails}
+                      </p>
+                    )}
                     {invoice.createdAt && (
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatDistanceToNow(new Date(invoice.createdAt), { addSuffix: true, locale: fr })}
@@ -200,7 +217,7 @@ export default function AdminInvoices() {
                   </div>
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="font-mono font-bold text-xl">${invoice.amount}</p>
+                      <p className="font-mono font-bold text-xl">{invoice.amount} €</p>
                       {invoice.dueDate && (
                         <p className="text-xs text-muted-foreground mt-1">
                           Échéance: {new Date(invoice.dueDate).toLocaleDateString('fr-FR')}
@@ -253,7 +270,7 @@ export default function AdminInvoices() {
                 <SelectContent>
                   {approvedQuotes.map((quote) => (
                     <SelectItem key={quote.id} value={quote.id}>
-                      Devis #{quote.id.slice(0, 8)} - ${quote.quoteAmount}
+                      Devis #{quote.id.slice(0, 8)} - {quote.quoteAmount} €
                     </SelectItem>
                   ))}
                 </SelectContent>

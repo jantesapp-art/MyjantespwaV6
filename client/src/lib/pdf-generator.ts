@@ -101,15 +101,33 @@ export function generateQuotePDF(quote: Quote, clientInfo: any, serviceInfo: any
   }
   
   // Table
-  const description = serviceInfo?.description || serviceInfo?.name || 'Service automobile';
+  let description = serviceInfo?.description || serviceInfo?.name || 'Service automobile';
+  
+  // Add wheel details to description if available
+  if (quote.wheelCount || quote.diameter) {
+    const wheelInfo = [];
+    if (quote.wheelCount) wheelInfo.push(`${quote.wheelCount} jante${quote.wheelCount > 1 ? 's' : ''}`);
+    if (quote.diameter) wheelInfo.push(`Diamètre: ${quote.diameter}`);
+    description = `${description} (${wheelInfo.join(', ')})`;
+  }
+  
+  // Add product details if available
+  if (quote.productDetails) {
+    description = `${description}\n${quote.productDetails}`;
+  }
+  
+  const priceHT = parseFloat(quote.priceExcludingTax || quote.quoteAmount || '0');
+  const vatRate = parseFloat(quote.taxRate || '20');
+  const vatAmount = parseFloat(quote.taxAmount || (priceHT * vatRate / 100).toFixed(2));
+  
   const tableData = [{
     description: description,
     date: billingDate,
-    quantity: '1.00',
+    quantity: quote.wheelCount ? quote.wheelCount.toString() : '1.00',
     unit: 'pce',
-    unitPrice: parseFloat(quote.quoteAmount || '0').toFixed(2),
-    vat: '20.00 %',
-    amount: parseFloat(quote.quoteAmount || '0').toFixed(2),
+    unitPrice: priceHT.toFixed(2),
+    vat: `${vatRate.toFixed(0)} %`,
+    amount: priceHT.toFixed(2),
   }];
   
   autoTable(doc, {
@@ -127,12 +145,15 @@ export function generateQuotePDF(quote: Quote, clientInfo: any, serviceInfo: any
     theme: 'grid',
     headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
     styles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: {
+      0: { cellWidth: 70 }
+    },
   });
   
   // Totals
   const finalY = (doc as any).lastAutoTable.finalY + 10;
-  const totalHT = parseFloat(quote.quoteAmount || '0');
-  const totalVAT = totalHT * 0.20;
+  const totalHT = priceHT;
+  const totalVAT = vatAmount;
   const totalTTC = totalHT + totalVAT;
   
   doc.setFontSize(10);
@@ -218,15 +239,33 @@ export function generateInvoicePDF(invoice: Invoice, clientInfo: any, quoteInfo:
   }
   
   // Table
-  const description = serviceInfo?.description || serviceInfo?.name || 'Service automobile';
+  let description = serviceInfo?.description || serviceInfo?.name || 'Service automobile';
+  
+  // Add wheel details to description if available
+  if (invoice.wheelCount || invoice.diameter) {
+    const wheelInfo = [];
+    if (invoice.wheelCount) wheelInfo.push(`${invoice.wheelCount} jante${invoice.wheelCount > 1 ? 's' : ''}`);
+    if (invoice.diameter) wheelInfo.push(`Diamètre: ${invoice.diameter}`);
+    description = `${description} (${wheelInfo.join(', ')})`;
+  }
+  
+  // Add product details if available
+  if (invoice.productDetails) {
+    description = `${description}\n${invoice.productDetails}`;
+  }
+  
+  const priceHT = parseFloat(invoice.priceExcludingTax || invoice.amount || '0');
+  const vatRate = parseFloat(invoice.taxRate || '20');
+  const vatAmount = parseFloat(invoice.taxAmount || (priceHT * vatRate / 100).toFixed(2));
+  
   const tableData = [{
     description: description,
     date: billingDate,
-    quantity: '1.00',
+    quantity: invoice.wheelCount ? invoice.wheelCount.toString() : '1.00',
     unit: 'pce',
-    unitPrice: parseFloat(invoice.amount || '0').toFixed(2),
-    vat: '20.00 %',
-    amount: parseFloat(invoice.amount || '0').toFixed(2),
+    unitPrice: priceHT.toFixed(2),
+    vat: `${vatRate.toFixed(0)} %`,
+    amount: priceHT.toFixed(2),
   }];
   
   autoTable(doc, {
@@ -244,19 +283,22 @@ export function generateInvoicePDF(invoice: Invoice, clientInfo: any, quoteInfo:
     theme: 'grid',
     headStyles: { fillColor: [240, 240, 240], textColor: [0, 0, 0], fontStyle: 'bold' },
     styles: { fontSize: 9, cellPadding: 3 },
+    columnStyles: {
+      0: { cellWidth: 70 }
+    },
   });
   
   // Totals
   const finalY = (doc as any).lastAutoTable.finalY + 10;
-  const totalHT = parseFloat(invoice.amount || '0');
-  const totalVAT = totalHT * 0.20;
+  const totalHT = priceHT;
+  const totalVAT = vatAmount;
   const totalTTC = totalHT + totalVAT;
   
   doc.setFontSize(10);
   doc.text(`Total HT`, 120, finalY);
   doc.text(`${totalHT.toFixed(2)} €`, 170, finalY, { align: 'right' });
   
-  doc.text(`TVA 20,00 %`, 120, finalY + 6);
+  doc.text(`TVA ${vatRate.toFixed(2)} %`, 120, finalY + 6);
   doc.text(`${totalVAT.toFixed(2)} €`, 170, finalY + 6, { align: 'right' });
   
   doc.setFont('helvetica', 'bold');

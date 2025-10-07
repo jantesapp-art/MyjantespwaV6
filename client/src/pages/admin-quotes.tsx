@@ -354,8 +354,25 @@ export default function AdminQuotes() {
                       <p className="font-semibold">Devis #{quote.id.slice(0, 8)}</p>
                       <StatusBadge status={quote.status as any} />
                     </div>
-                    <p className="text-sm text-muted-foreground truncate">ID Client: {quote.clientId.slice(0, 8)}</p>
-                    <p className="text-sm text-muted-foreground truncate">ID Service: {quote.serviceId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground truncate">Client: {quote.clientId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground truncate">Service: {quote.serviceId.slice(0, 8)}</p>
+                    {quote.wheelCount && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Jantes:</span> {quote.wheelCount} 
+                        {quote.diameter && <span> | <span className="font-medium">Diamètre:</span> {quote.diameter}</span>}
+                      </p>
+                    )}
+                    {quote.priceExcludingTax && (
+                      <p className="text-sm text-muted-foreground">
+                        <span className="font-medium">Prix HT:</span> {parseFloat(quote.priceExcludingTax).toFixed(2)} € 
+                        {quote.taxRate && <span> | <span className="font-medium">TVA:</span> {parseFloat(quote.taxRate).toFixed(0)}%</span>}
+                      </p>
+                    )}
+                    {quote.productDetails && (
+                      <p className="text-sm text-muted-foreground line-clamp-2 mt-1">
+                        <span className="font-medium">Produits:</span> {quote.productDetails}
+                      </p>
+                    )}
                     {quote.createdAt && (
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true, locale: fr })}
