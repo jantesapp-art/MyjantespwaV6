@@ -159,39 +159,29 @@ export default function AdminDashboard() {
           <CardTitle className="text-xl">Actions rapides</CardTitle>
         </CardHeader>
         <CardContent className="space-y-2">
-          <Link href="/admin/reservations">
-            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-reservations">
-              <ClipboardList className="h-5 w-5 text-primary" />
-              <span className="font-medium">Gérer les réservations</span>
-            </a>
+          <Link href="/admin/reservations" className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-reservations">
+            <ClipboardList className="h-5 w-5 text-primary" />
+            <span className="font-medium">Gérer les réservations</span>
           </Link>
 
-          <Link href="/admin/reservations">
-            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-planning-assignments">
-              <CalendarClock className="h-5 w-5 text-primary" />
-              <span className="font-medium">Planning & Assignations</span>
-            </a>
+          <Link href="/admin/reservations" className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-planning-assignments">
+            <CalendarClock className="h-5 w-5 text-primary" />
+            <span className="font-medium">Planning & Assignations</span>
           </Link>
 
-          <Link href="/admin/quotes">
-            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-validate-quotes">
-              <CheckCircle className="h-5 w-5 text-primary" />
-              <span className="font-medium">Valider les devis</span>
-            </a>
+          <Link href="/admin/quotes" className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-validate-quotes">
+            <CheckCircle className="h-5 w-5 text-primary" />
+            <span className="font-medium">Valider les devis</span>
           </Link>
 
-          <Link href="/admin/invoices">
-            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-invoices">
-              <Receipt className="h-5 w-5 text-primary" />
-              <span className="font-medium">Gérer les factures</span>
-            </a>
+          <Link href="/admin/invoices" className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-invoices">
+            <Receipt className="h-5 w-5 text-primary" />
+            <span className="font-medium">Gérer les factures</span>
           </Link>
 
-          <Link href="/admin/settings">
-            <a className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-users">
-              <Users className="h-5 w-5 text-primary" />
-              <span className="font-medium">Gérer les utilisateurs</span>
-            </a>
+          <Link href="/admin/settings" className="flex items-center gap-3 p-3 rounded-lg hover-elevate active-elevate-2 transition-colors" data-testid="link-manage-users">
+            <Users className="h-5 w-5 text-primary" />
+            <span className="font-medium">Gérer les utilisateurs</span>
           </Link>
         </CardContent>
       </Card>
