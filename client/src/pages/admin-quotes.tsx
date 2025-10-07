@@ -251,10 +251,10 @@ export default function AdminQuotes() {
   }
 
   return (
-    <div className="p-4 md:p-6 space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold" data-testid="text-admin-quotes-title">Gestion des Devis</h1>
-        <Button onClick={() => setCreateQuoteDialog(true)} data-testid="button-create-quote">
+    <div className="p-4 md:p-6 space-y-6 max-w-7xl mx-auto">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <h1 className="text-2xl sm:text-3xl font-bold" data-testid="text-admin-quotes-title">Gestion des Devis</h1>
+        <Button onClick={() => setCreateQuoteDialog(true)} data-testid="button-create-quote" className="w-full sm:w-auto">
           <Plus className="h-4 w-4 mr-2" />
           Créer un devis
         </Button>
@@ -280,28 +280,28 @@ export default function AdminQuotes() {
               {quotes.map((quote) => (
                 <div
                   key={quote.id}
-                  className="flex items-center justify-between p-4 border border-border rounded-md hover-elevate"
+                  className="flex flex-col md:flex-row gap-4 p-4 border border-border rounded-md hover-elevate"
                   data-testid={`admin-quote-item-${quote.id}`}
                 >
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
+                  <div className="flex-1 min-w-0">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <p className="font-semibold">Devis #{quote.id.slice(0, 8)}</p>
                       <StatusBadge status={quote.status as any} />
                     </div>
-                    <p className="text-sm text-muted-foreground">ID Client: {quote.clientId.slice(0, 8)}</p>
-                    <p className="text-sm text-muted-foreground">ID Service: {quote.serviceId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground truncate">ID Client: {quote.clientId.slice(0, 8)}</p>
+                    <p className="text-sm text-muted-foreground truncate">ID Service: {quote.serviceId.slice(0, 8)}</p>
                     {quote.createdAt && (
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatDistanceToNow(new Date(quote.createdAt), { addSuffix: true, locale: fr })}
                       </p>
                     )}
                   </div>
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 md:gap-4">
                     {quote.quoteAmount && (
-                      <p className="font-mono font-bold text-lg">${quote.quoteAmount}</p>
+                      <p className="font-mono font-bold text-lg whitespace-nowrap">{quote.quoteAmount} €</p>
                     )}
                     {quote.status === "pending" && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                         <Button
                           size="sm"
                           onClick={() => {
@@ -310,6 +310,7 @@ export default function AdminQuotes() {
                             setNotes(quote.notes || "");
                           }}
                           data-testid={`button-respond-${quote.id}`}
+                          className="flex-1 sm:flex-none"
                         >
                           Répondre
                         </Button>
@@ -324,12 +325,13 @@ export default function AdminQuotes() {
                       </div>
                     )}
                     {quote.status === "approved" && (
-                      <div className="flex gap-2">
+                      <div className="flex flex-wrap gap-2 w-full sm:w-auto">
                         <Button
                           size="sm"
                           variant="outline"
                           onClick={() => handleDownloadPDF(quote)}
                           data-testid={`button-download-pdf-${quote.id}`}
+                          className="flex-1 sm:flex-none"
                         >
                           <Download className="h-4 w-4 mr-2" />
                           PDF
@@ -343,9 +345,10 @@ export default function AdminQuotes() {
                             setInvoiceNotes("");
                           }}
                           data-testid={`button-create-invoice-${quote.id}`}
+                          className="flex-1 sm:flex-none"
                         >
                           <FileText className="h-4 w-4 mr-2" />
-                          Créer Facture
+                          Facture
                         </Button>
                         <Button
                           size="sm"
@@ -356,9 +359,10 @@ export default function AdminQuotes() {
                             setReservationNotes("");
                           }}
                           data-testid={`button-create-reservation-${quote.id}`}
+                          className="flex-1 sm:flex-none"
                         >
                           <Calendar className="h-4 w-4 mr-2" />
-                          Créer Réservation
+                          Réservation
                         </Button>
                       </div>
                     )}
