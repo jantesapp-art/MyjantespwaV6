@@ -98,10 +98,16 @@ export const invoices = pgTable("invoices", {
 // Reservations
 export const reservations = pgTable("reservations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
-  quoteId: varchar("quote_id").notNull().references(() => quotes.id, { onDelete: 'cascade' }),
+  quoteId: varchar("quote_id").references(() => quotes.id, { onDelete: 'cascade' }), // Optional - nullable for direct reservations
   clientId: varchar("client_id").notNull().references(() => users.id, { onDelete: 'cascade' }),
   serviceId: varchar("service_id").notNull().references(() => services.id, { onDelete: 'cascade' }),
   scheduledDate: timestamp("scheduled_date").notNull(),
+  wheelCount: integer("wheel_count"), // Number of wheels: 1, 2, 3, or 4
+  diameter: varchar("diameter", { length: 50 }), // Wheel diameter
+  priceExcludingTax: decimal("price_excluding_tax", { precision: 10, scale: 2 }), // Prix HT
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }), // TVA rate (e.g., 20.00 for 20%)
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }), // TVA amount
+  productDetails: text("product_details"), // Details about products
   status: varchar("status", { enum: ["pending", "confirmed", "completed", "cancelled"] }).notNull().default("pending"),
   notes: text("notes"),
   createdAt: timestamp("created_at").defaultNow(),
@@ -245,6 +251,13 @@ export const insertReservationSchema = createInsertSchema(reservations)
     scheduledDate: z.union([z.date(), z.string()]).transform(val => 
       typeof val === 'string' ? new Date(val) : val
     ),
+    quoteId: z.string().optional(),
+    wheelCount: z.number().min(1).max(4).optional(),
+    diameter: z.string().optional(),
+    priceExcludingTax: z.string().optional(),
+    taxRate: z.string().optional(),
+    taxAmount: z.string().optional(),
+    productDetails: z.string().optional(),
   });
 
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
