@@ -258,7 +258,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const validatedData = insertInvoiceSchema.parse(invoiceData);
       
-      // Get quote to determine payment method
+      // Get quote to determine payment method and copy details
       const quote = await storage.getQuote(validatedData.quoteId);
       if (!quote) {
         return res.status(404).json({ message: "Quote not found" });
@@ -273,10 +273,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const paddedNumber = counter.currentNumber.toString().padStart(8, "0");
       const invoiceNumber = `${prefix}${paddedNumber}`;
       
-      // Create invoice with generated number
+      // Create invoice with generated number and copy details from quote
       const invoice = await storage.createInvoice({
         ...validatedData,
         invoiceNumber,
+        wheelCount: quote.wheelCount,
+        diameter: quote.diameter,
+        priceExcludingTax: quote.priceExcludingTax,
+        taxRate: quote.taxRate,
+        taxAmount: quote.taxAmount,
+        productDetails: quote.productDetails,
       });
       
       // Create media entries
