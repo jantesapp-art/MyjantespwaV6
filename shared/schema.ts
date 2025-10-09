@@ -101,6 +101,21 @@ export const invoices = pgTable("invoices", {
   updatedAt: timestamp("updated_at").defaultNow(),
 });
 
+// Invoice Items (lignes de facture)
+export const invoiceItems = pgTable("invoice_items", {
+  id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
+  invoiceId: varchar("invoice_id").notNull().references(() => invoices.id, { onDelete: 'cascade' }),
+  description: text("description").notNull(),
+  quantity: decimal("quantity", { precision: 10, scale: 2 }).notNull().default("1"),
+  unitPriceExcludingTax: decimal("unit_price_excluding_tax", { precision: 10, scale: 2 }).notNull(),
+  totalExcludingTax: decimal("total_excluding_tax", { precision: 10, scale: 2 }).notNull(),
+  taxRate: decimal("tax_rate", { precision: 5, scale: 2 }).notNull(),
+  taxAmount: decimal("tax_amount", { precision: 10, scale: 2 }).notNull(),
+  totalIncludingTax: decimal("total_including_tax", { precision: 10, scale: 2 }).notNull(),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
 // Reservations
 export const reservations = pgTable("reservations", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
@@ -188,7 +203,7 @@ export const quotesRelations = relations(quotes, ({ one, many }) => ({
   reservations: many(reservations),
 }));
 
-export const invoicesRelations = relations(invoices, ({ one }) => ({
+export const invoicesRelations = relations(invoices, ({ one, many }) => ({
   quote: one(quotes, {
     fields: [invoices.quoteId],
     references: [quotes.id],
@@ -196,6 +211,14 @@ export const invoicesRelations = relations(invoices, ({ one }) => ({
   client: one(users, {
     fields: [invoices.clientId],
     references: [users.id],
+  }),
+  items: many(invoiceItems),
+}));
+
+export const invoiceItemsRelations = relations(invoiceItems, ({ one }) => ({
+  invoice: one(invoices, {
+    fields: [invoiceItems.invoiceId],
+    references: [invoices.id],
   }),
 }));
 
@@ -266,6 +289,7 @@ export const insertReservationSchema = createInsertSchema(reservations)
     productDetails: z.string().optional(),
   });
 
+export const insertInvoiceItemSchema = createInsertSchema(invoiceItems).omit({ id: true, createdAt: true, updatedAt: true });
 export const insertNotificationSchema = createInsertSchema(notifications).omit({ id: true, createdAt: true });
 export const insertInvoiceCounterSchema = createInsertSchema(invoiceCounters).omit({ id: true, updatedAt: true });
 export const insertQuoteMediaSchema = createInsertSchema(quoteMedia).omit({ id: true, createdAt: true });
@@ -280,6 +304,8 @@ export type InsertQuote = z.infer<typeof insertQuoteSchema>;
 export type Quote = typeof quotes.$inferSelect;
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
 export type Invoice = typeof invoices.$inferSelect;
+export type InsertInvoiceItem = z.infer<typeof insertInvoiceItemSchema>;
+export type InvoiceItem = typeof invoiceItems.$inferSelect;
 export type InsertReservation = z.infer<typeof insertReservationSchema>;
 export type Reservation = typeof reservations.$inferSelect;
 export type InsertNotification = z.infer<typeof insertNotificationSchema>;
