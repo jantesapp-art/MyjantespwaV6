@@ -4,6 +4,7 @@ import {
   services,
   quotes,
   invoices,
+  invoiceItems,
   reservations,
   notifications,
   invoiceCounters,
@@ -15,6 +16,8 @@ import {
   type InsertQuote,
   type Invoice,
   type InsertInvoice,
+  type InvoiceItem,
+  type InsertInvoiceItem,
   type Reservation,
   type InsertReservation,
   type Notification,
@@ -53,6 +56,12 @@ export interface IStorage {
   getInvoice(id: string): Promise<Invoice | undefined>;
   createInvoice(invoice: InsertInvoice): Promise<Invoice>;
   updateInvoice(id: string, invoice: Partial<InsertInvoice>): Promise<Invoice>;
+  
+  // Invoice item operations
+  getInvoiceItems(invoiceId: string): Promise<InvoiceItem[]>;
+  createInvoiceItem(item: InsertInvoiceItem): Promise<InvoiceItem>;
+  updateInvoiceItem(id: string, item: Partial<InsertInvoiceItem>): Promise<InvoiceItem>;
+  deleteInvoiceItem(id: string): Promise<void>;
 
   // Reservation operations
   getReservations(clientId?: string): Promise<Reservation[]>;
@@ -217,6 +226,33 @@ export class DatabaseStorage implements IStorage {
       .where(eq(invoices.id, id))
       .returning();
     return invoice;
+  }
+
+  // Invoice item operations
+  async getInvoiceItems(invoiceId: string): Promise<InvoiceItem[]> {
+    return await db
+      .select()
+      .from(invoiceItems)
+      .where(eq(invoiceItems.invoiceId, invoiceId))
+      .orderBy(invoiceItems.createdAt);
+  }
+
+  async createInvoiceItem(itemData: InsertInvoiceItem): Promise<InvoiceItem> {
+    const [item] = await db.insert(invoiceItems).values(itemData).returning();
+    return item;
+  }
+
+  async updateInvoiceItem(id: string, itemData: Partial<InsertInvoiceItem>): Promise<InvoiceItem> {
+    const [item] = await db
+      .update(invoiceItems)
+      .set({ ...itemData, updatedAt: new Date() })
+      .where(eq(invoiceItems.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteInvoiceItem(id: string): Promise<void> {
+    await db.delete(invoiceItems).where(eq(invoiceItems.id, id));
   }
 
   // Reservation operations
