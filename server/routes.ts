@@ -234,6 +234,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Quote Items routes
+  app.get("/api/admin/quotes/:id/items", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const items = await storage.getQuoteItems(id);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching quote items:", error);
+      res.status(500).json({ message: "Failed to fetch quote items" });
+    }
+  });
+
+  app.post("/api/admin/quotes/:id/items", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { insertQuoteItemSchema } = await import("@shared/schema");
+      const validatedData = insertQuoteItemSchema.parse({ ...req.body, quoteId: id });
+      const item = await storage.createQuoteItem(validatedData);
+      // Recalculate quote totals after creating item
+      await storage.recalculateQuoteTotals(id);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Error creating quote item:", error);
+      res.status(400).json({ message: error.message || "Failed to create quote item" });
+    }
+  });
+
+  app.patch("/api/admin/quote-items/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const item = await storage.updateQuoteItem(id, req.body);
+      // Recalculate quote totals after updating item
+      await storage.recalculateQuoteTotals(item.quoteId);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Error updating quote item:", error);
+      res.status(400).json({ message: error.message || "Failed to update quote item" });
+    }
+  });
+
+  app.delete("/api/admin/quote-items/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      // Get item first to know its quoteId for recalculation
+      const itemToDelete = await storage.getQuoteItem(id);
+      if (!itemToDelete) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
+      await storage.deleteQuoteItem(id);
+      // Recalculate quote totals after deleting item
+      await storage.recalculateQuoteTotals(itemToDelete.quoteId);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error deleting quote item:", error);
+      res.status(400).json({ message: error.message || "Failed to delete quote item" });
+    }
+  });
+
   // Invoice routes
   app.get("/api/invoices", isAuthenticated, async (req: any, res) => {
     try {
