@@ -3,6 +3,7 @@ import {
   users,
   services,
   quotes,
+  quoteItems,
   invoices,
   invoiceItems,
   reservations,
@@ -14,6 +15,8 @@ import {
   type InsertService,
   type Quote,
   type InsertQuote,
+  type QuoteItem,
+  type InsertQuoteItem,
   type Invoice,
   type InsertInvoice,
   type InvoiceItem,
@@ -50,6 +53,14 @@ export interface IStorage {
   getQuote(id: string): Promise<Quote | undefined>;
   createQuote(quote: InsertQuote): Promise<Quote>;
   updateQuote(id: string, quote: Partial<InsertQuote>): Promise<Quote>;
+
+  // Quote item operations
+  getQuoteItems(quoteId: string): Promise<QuoteItem[]>;
+  getQuoteItem(id: string): Promise<QuoteItem | undefined>;
+  createQuoteItem(item: InsertQuoteItem): Promise<QuoteItem>;
+  updateQuoteItem(id: string, item: Partial<InsertQuoteItem>): Promise<QuoteItem>;
+  deleteQuoteItem(id: string): Promise<void>;
+  recalculateQuoteTotals(quoteId: string): Promise<Quote>;
 
   // Invoice operations
   getInvoices(clientId?: string): Promise<Invoice[]>;
@@ -199,6 +210,59 @@ export class DatabaseStorage implements IStorage {
       .where(eq(quotes.id, id))
       .returning();
     return quote;
+  }
+
+  // Quote item operations
+  async getQuoteItems(quoteId: string): Promise<QuoteItem[]> {
+    return await db
+      .select()
+      .from(quoteItems)
+      .where(eq(quoteItems.quoteId, quoteId))
+      .orderBy(quoteItems.createdAt);
+  }
+
+  async getQuoteItem(id: string): Promise<QuoteItem | undefined> {
+    const [item] = await db.select().from(quoteItems).where(eq(quoteItems.id, id));
+    return item;
+  }
+
+  async createQuoteItem(itemData: InsertQuoteItem): Promise<QuoteItem> {
+    const [item] = await db.insert(quoteItems).values(itemData).returning();
+    return item;
+  }
+
+  async updateQuoteItem(id: string, itemData: Partial<InsertQuoteItem>): Promise<QuoteItem> {
+    const [item] = await db
+      .update(quoteItems)
+      .set({ ...itemData, updatedAt: new Date() })
+      .where(eq(quoteItems.id, id))
+      .returning();
+    return item;
+  }
+
+  async deleteQuoteItem(id: string): Promise<void> {
+    await db.delete(quoteItems).where(eq(quoteItems.id, id));
+  }
+
+  async recalculateQuoteTotals(quoteId: string): Promise<Quote> {
+    // Get all items for this quote
+    const items = await this.getQuoteItems(quoteId);
+    
+    // Calculate totals
+    const totalHT = items.reduce((sum, item) => sum + parseFloat(item.totalExcludingTax || '0'), 0);
+    const totalVAT = items.reduce((sum, item) => sum + parseFloat(item.taxAmount || '0'), 0);
+    const totalTTC = totalHT + totalVAT;
+    
+    // Get average tax rate (or use first item's rate)
+    const avgTaxRate = items.length > 0 ? parseFloat(items[0].taxRate || '20') : 20;
+    
+    // Update quote with calculated totals
+    return await this.updateQuote(quoteId, {
+      quoteAmount: totalTTC.toFixed(2),
+      priceExcludingTax: totalHT.toFixed(2),
+      taxAmount: totalVAT.toFixed(2),
+      taxRate: avgTaxRate.toFixed(2),
+    });
   }
 
   // Invoice operations
