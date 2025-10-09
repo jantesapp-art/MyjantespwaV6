@@ -77,13 +77,25 @@ export default function AdminQuotes() {
     enabled: isAuthenticated && isAdmin,
   });
 
-  const handleDownloadPDF = (quote: Quote) => {
-    const service = services.find(s => s.id === quote.serviceId);
-    const clientInfo = { 
-      name: `Client-${quote.clientId.slice(0, 8)}`,
-      email: 'client@myjantes.fr'
-    };
-    generateQuotePDF(quote, clientInfo, service);
+  const handleDownloadPDF = async (quote: Quote) => {
+    try {
+      // Fetch quote items
+      const response = await fetch(`/api/admin/quotes/${quote.id}/items`);
+      const quoteItems = response.ok ? await response.json() : [];
+      
+      const service = services.find(s => s.id === quote.serviceId);
+      const clientInfo = { 
+        name: `Client-${quote.clientId.slice(0, 8)}`,
+        email: 'client@myjantes.fr'
+      };
+      generateQuotePDF(quote, clientInfo, service, quoteItems);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Échec de la génération du PDF",
+        variant: "destructive",
+      });
+    }
   };
 
   const updateQuoteMutation = useMutation({
