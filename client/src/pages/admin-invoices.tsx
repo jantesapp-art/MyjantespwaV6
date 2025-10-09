@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,10 +16,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Plus, Download, Tags } from "lucide-react";
+import { Plus, Download, Tags, Pencil } from "lucide-react";
 import { generateInvoicePDF, generateLabelsPDF } from "@/lib/pdf-generator";
 
 export default function AdminInvoices() {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -225,6 +227,15 @@ export default function AdminInvoices() {
                       )}
                     </div>
                     <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setLocation(`/admin/invoices/${invoice.id}/edit`)}
+                        data-testid={`button-edit-invoice-${invoice.id}`}
+                      >
+                        <Pencil className="h-4 w-4 mr-2" />
+                        Éditer
+                      </Button>
                       <Button
                         size="sm"
                         variant="outline"
