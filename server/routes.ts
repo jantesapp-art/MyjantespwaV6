@@ -336,6 +336,53 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Invoice Items routes
+  app.get("/api/admin/invoices/:id/items", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const items = await storage.getInvoiceItems(id);
+      res.json(items);
+    } catch (error) {
+      console.error("Error fetching invoice items:", error);
+      res.status(500).json({ message: "Failed to fetch invoice items" });
+    }
+  });
+
+  app.post("/api/admin/invoices/:id/items", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { insertInvoiceItemSchema } = await import("@shared/schema");
+      const validatedData = insertInvoiceItemSchema.parse({ ...req.body, invoiceId: id });
+      const item = await storage.createInvoiceItem(validatedData);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Error creating invoice item:", error);
+      res.status(400).json({ message: error.message || "Failed to create invoice item" });
+    }
+  });
+
+  app.patch("/api/admin/invoice-items/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      const item = await storage.updateInvoiceItem(id, req.body);
+      res.json(item);
+    } catch (error: any) {
+      console.error("Error updating invoice item:", error);
+      res.status(400).json({ message: error.message || "Failed to update invoice item" });
+    }
+  });
+
+  app.delete("/api/admin/invoice-items/:id", isAuthenticated, isAdmin, async (req, res) => {
+    try {
+      const { id } = req.params;
+      await storage.deleteInvoiceItem(id);
+      res.json({ success: true });
+    } catch (error: any) {
+      console.error("Error deleting invoice item:", error);
+      res.status(400).json({ message: error.message || "Failed to delete invoice item" });
+    }
+  });
+
   // Reservation routes
   app.get("/api/reservations", isAuthenticated, async (req: any, res) => {
     try {
