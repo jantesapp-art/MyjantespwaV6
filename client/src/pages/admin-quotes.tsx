@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,11 +16,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { apiRequest, queryClient } from "@/lib/queryClient";
 import { formatDistanceToNow, addDays } from "date-fns";
 import { fr } from "date-fns/locale";
-import { Check, X, FileText, Calendar, Download, Plus } from "lucide-react";
+import { Check, X, FileText, Calendar, Download, Plus, Pencil } from "lucide-react";
 import { generateQuotePDF } from "@/lib/pdf-generator";
 import { ObjectUploader } from "@/components/ObjectUploader";
 
 export default function AdminQuotes() {
+  const [, setLocation] = useLocation();
   const { toast } = useToast();
   const { isAuthenticated, isLoading, isAdmin } = useAuth();
   const [selectedQuote, setSelectedQuote] = useState<Quote | null>(null);
@@ -409,6 +411,16 @@ export default function AdminQuotes() {
                     )}
                     {quote.status === "approved" && (
                       <div className="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          onClick={() => setLocation(`/admin/quotes/${quote.id}/edit`)}
+                          data-testid={`button-edit-quote-${quote.id}`}
+                          className="flex-1 sm:flex-none"
+                        >
+                          <Pencil className="h-4 w-4 mr-2" />
+                          Éditer
+                        </Button>
                         <Button
                           size="sm"
                           variant="outline"

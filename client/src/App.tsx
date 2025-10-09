@@ -22,6 +22,7 @@ import AdminQuotes from "@/pages/admin-quotes";
 import AdminServices from "@/pages/admin-services";
 import AdminInvoices from "@/pages/admin-invoices";
 import AdminInvoiceEdit from "@/pages/admin-invoice-edit";
+import AdminQuoteEdit from "@/pages/admin-quote-edit";
 import AdminReservations from "@/pages/admin-reservations";
 import AdminSettings from "@/pages/admin-settings";
 import AdminUsers from "@/pages/admin-users";
@@ -79,6 +80,7 @@ function Router() {
               <Switch>
                 <Route path="/admin" component={AdminDashboard} />
                 <Route path="/admin/services" component={AdminServices} />
+                <Route path="/admin/quotes/:id/edit" component={AdminQuoteEdit} />
                 <Route path="/admin/quotes" component={AdminQuotes} />
                 <Route path="/admin/invoices/:id/edit" component={AdminInvoiceEdit} />
                 <Route path="/admin/invoices" component={AdminInvoices} />
