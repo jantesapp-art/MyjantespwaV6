@@ -1,7 +1,7 @@
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import QRCode from 'qrcode';
-import type { Quote, Invoice } from '@shared/schema';
+import type { Quote, Invoice, InvoiceItem } from '@shared/schema';
 
 interface PDFData {
   type: 'quote' | 'invoice';
@@ -182,7 +182,7 @@ export function generateQuotePDF(quote: Quote, clientInfo: any, serviceInfo: any
   doc.save(`devis-${quoteNumber}.pdf`);
 }
 
-export function generateInvoicePDF(invoice: Invoice, clientInfo: any, quoteInfo: any, serviceInfo: any) {
+export function generateInvoicePDF(invoice: Invoice, clientInfo: any, quoteInfo: any, serviceInfo: any, invoiceItems?: InvoiceItem[]) {
   const doc = new jsPDF();
   const pageWidth = doc.internal.pageSize.width;
   
@@ -238,35 +238,50 @@ export function generateInvoicePDF(invoice: Invoice, clientInfo: any, quoteInfo:
     doc.text(clientInfo.address, 20, 150);
   }
   
-  // Table
-  let description = serviceInfo?.description || serviceInfo?.name || 'Service automobile';
+  // Table - Use invoice items if available, otherwise fall back to legacy single item
+  let tableData: any[];
   
-  // Add wheel details to description if available
-  if (invoice.wheelCount || invoice.diameter) {
-    const wheelInfo = [];
-    if (invoice.wheelCount) wheelInfo.push(`${invoice.wheelCount} jante${invoice.wheelCount > 1 ? 's' : ''}`);
-    if (invoice.diameter) wheelInfo.push(`Diamètre: ${invoice.diameter}`);
-    description = `${description} (${wheelInfo.join(', ')})`;
+  if (invoiceItems && invoiceItems.length > 0) {
+    // Use invoice items from database
+    tableData = invoiceItems.map(item => ({
+      description: item.description || '',
+      date: billingDate,
+      quantity: item.quantity?.toString() || '1',
+      unit: 'pce',
+      unitPrice: parseFloat(item.unitPriceExcludingTax || '0').toFixed(2),
+      vat: `${parseFloat(item.taxRate || '0').toFixed(0)} %`,
+      amount: parseFloat(item.totalExcludingTax || '0').toFixed(2),
+    }));
+  } else {
+    // Legacy: Create single item from invoice data
+    let description = serviceInfo?.description || serviceInfo?.name || 'Service automobile';
+    
+    // Add wheel details to description if available
+    if (invoice.wheelCount || invoice.diameter) {
+      const wheelInfo = [];
+      if (invoice.wheelCount) wheelInfo.push(`${invoice.wheelCount} jante${invoice.wheelCount > 1 ? 's' : ''}`);
+      if (invoice.diameter) wheelInfo.push(`Diamètre: ${invoice.diameter}`);
+      description = `${description} (${wheelInfo.join(', ')})`;
+    }
+    
+    // Add product details if available
+    if (invoice.productDetails) {
+      description = `${description}\n${invoice.productDetails}`;
+    }
+    
+    const priceHT = parseFloat(invoice.priceExcludingTax || invoice.amount || '0');
+    const vatRate = parseFloat(invoice.taxRate || '20');
+    
+    tableData = [{
+      description: description,
+      date: billingDate,
+      quantity: invoice.wheelCount ? invoice.wheelCount.toString() : '1.00',
+      unit: 'pce',
+      unitPrice: priceHT.toFixed(2),
+      vat: `${vatRate.toFixed(0)} %`,
+      amount: priceHT.toFixed(2),
+    }];
   }
-  
-  // Add product details if available
-  if (invoice.productDetails) {
-    description = `${description}\n${invoice.productDetails}`;
-  }
-  
-  const priceHT = parseFloat(invoice.priceExcludingTax || invoice.amount || '0');
-  const vatRate = parseFloat(invoice.taxRate || '20');
-  const vatAmount = parseFloat(invoice.taxAmount || (priceHT * vatRate / 100).toFixed(2));
-  
-  const tableData = [{
-    description: description,
-    date: billingDate,
-    quantity: invoice.wheelCount ? invoice.wheelCount.toString() : '1.00',
-    unit: 'pce',
-    unitPrice: priceHT.toFixed(2),
-    vat: `${vatRate.toFixed(0)} %`,
-    amount: priceHT.toFixed(2),
-  }];
   
   autoTable(doc, {
     startY: 165,
@@ -288,11 +303,29 @@ export function generateInvoicePDF(invoice: Invoice, clientInfo: any, quoteInfo:
     },
   });
   
-  // Totals
+  // Totals - Calculate from invoice items if available
   const finalY = (doc as any).lastAutoTable.finalY + 10;
-  const totalHT = priceHT;
-  const totalVAT = vatAmount;
-  const totalTTC = totalHT + totalVAT;
+  let totalHT: number;
+  let totalVAT: number;
+  let totalTTC: number;
+  let vatRate: number;
+  
+  if (invoiceItems && invoiceItems.length > 0) {
+    // Calculate totals from items
+    totalHT = invoiceItems.reduce((sum, item) => sum + parseFloat(item.totalExcludingTax || '0'), 0);
+    totalVAT = invoiceItems.reduce((sum, item) => sum + parseFloat(item.taxAmount || '0'), 0);
+    totalTTC = invoiceItems.reduce((sum, item) => sum + parseFloat(item.totalIncludingTax || '0'), 0);
+    // Get average VAT rate for display (or first item's rate)
+    vatRate = invoiceItems.length > 0 ? parseFloat(invoiceItems[0].taxRate || '20') : 20;
+  } else {
+    // Legacy: Use old calculation
+    const priceHT = parseFloat(invoice.priceExcludingTax || invoice.amount || '0');
+    vatRate = parseFloat(invoice.taxRate || '20');
+    const vatAmount = parseFloat(invoice.taxAmount || (priceHT * vatRate / 100).toFixed(2));
+    totalHT = priceHT;
+    totalVAT = vatAmount;
+    totalTTC = totalHT + totalVAT;
+  }
   
   doc.setFontSize(10);
   doc.text(`Total HT`, 120, finalY);

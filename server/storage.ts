@@ -237,6 +237,11 @@ export class DatabaseStorage implements IStorage {
       .orderBy(invoiceItems.createdAt);
   }
 
+  async getInvoiceItem(id: string): Promise<InvoiceItem | undefined> {
+    const [item] = await db.select().from(invoiceItems).where(eq(invoiceItems.id, id));
+    return item;
+  }
+
   async createInvoiceItem(itemData: InsertInvoiceItem): Promise<InvoiceItem> {
     const [item] = await db.insert(invoiceItems).values(itemData).returning();
     return item;
@@ -253,6 +258,27 @@ export class DatabaseStorage implements IStorage {
 
   async deleteInvoiceItem(id: string): Promise<void> {
     await db.delete(invoiceItems).where(eq(invoiceItems.id, id));
+  }
+
+  async recalculateInvoiceTotals(invoiceId: string): Promise<Invoice> {
+    // Get all items for this invoice
+    const items = await this.getInvoiceItems(invoiceId);
+    
+    // Calculate totals
+    const totalHT = items.reduce((sum, item) => sum + parseFloat(item.totalExcludingTax || '0'), 0);
+    const totalVAT = items.reduce((sum, item) => sum + parseFloat(item.taxAmount || '0'), 0);
+    const totalTTC = totalHT + totalVAT;
+    
+    // Get average tax rate (or use first item's rate)
+    const avgTaxRate = items.length > 0 ? parseFloat(items[0].taxRate || '20') : 20;
+    
+    // Update invoice with calculated totals
+    return await this.updateInvoice(invoiceId, {
+      amount: totalTTC.toFixed(2),
+      priceExcludingTax: totalHT.toFixed(2),
+      taxAmount: totalVAT.toFixed(2),
+      taxRate: avgTaxRate.toFixed(2),
+    });
   }
 
   // Reservation operations

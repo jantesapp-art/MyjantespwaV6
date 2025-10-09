@@ -354,6 +354,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { insertInvoiceItemSchema } = await import("@shared/schema");
       const validatedData = insertInvoiceItemSchema.parse({ ...req.body, invoiceId: id });
       const item = await storage.createInvoiceItem(validatedData);
+      // Recalculate invoice totals after creating item
+      await storage.recalculateInvoiceTotals(id);
       res.json(item);
     } catch (error: any) {
       console.error("Error creating invoice item:", error);
@@ -365,6 +367,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { id } = req.params;
       const item = await storage.updateInvoiceItem(id, req.body);
+      // Recalculate invoice totals after updating item
+      await storage.recalculateInvoiceTotals(item.invoiceId);
       res.json(item);
     } catch (error: any) {
       console.error("Error updating invoice item:", error);
@@ -375,7 +379,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete("/api/admin/invoice-items/:id", isAuthenticated, isAdmin, async (req, res) => {
     try {
       const { id } = req.params;
+      // Get item first to know its invoiceId for recalculation
+      const itemToDelete = await storage.getInvoiceItem(id);
+      if (!itemToDelete) {
+        return res.status(404).json({ message: "Item not found" });
+      }
+      
       await storage.deleteInvoiceItem(id);
+      // Recalculate invoice totals after deleting item
+      await storage.recalculateInvoiceTotals(itemToDelete.invoiceId);
       res.json({ success: true });
     } catch (error: any) {
       console.error("Error deleting invoice item:", error);

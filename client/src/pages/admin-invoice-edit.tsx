@@ -70,6 +70,7 @@ export default function AdminInvoiceEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/invoices/${invoiceId}`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/invoices"] });
       toast({
         title: "Succès",
         description: "Facture mise à jour",
@@ -91,6 +92,7 @@ export default function AdminInvoiceEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/invoices/${invoiceId}/items`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/invoices"] });
     },
   });
 
@@ -101,6 +103,7 @@ export default function AdminInvoiceEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/invoices/${invoiceId}/items`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/invoices"] });
     },
   });
 
@@ -111,6 +114,7 @@ export default function AdminInvoiceEdit() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/admin/invoices/${invoiceId}/items`] });
+      queryClient.invalidateQueries({ queryKey: ["/api/admin/invoices"] });
       toast({
         title: "Succès",
         description: "Ligne supprimée",

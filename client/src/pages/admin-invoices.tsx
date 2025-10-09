@@ -63,14 +63,27 @@ export default function AdminInvoices() {
 
   const approvedQuotes = quotes.filter((q) => q.status === "approved");
 
-  const handleDownloadPDF = (invoice: Invoice) => {
-    const quote = quotes.find(q => q.id === invoice.quoteId);
-    const service = services.find(s => s.id === quote?.serviceId);
-    const clientInfo = { 
-      name: `Client-${invoice.clientId.slice(0, 8)}`,
-      email: 'client@myjantes.fr'
-    };
-    generateInvoicePDF(invoice, clientInfo, quote, service);
+  const handleDownloadPDF = async (invoice: Invoice) => {
+    try {
+      const quote = quotes.find(q => q.id === invoice.quoteId);
+      const service = services.find(s => s.id === quote?.serviceId);
+      const clientInfo = { 
+        name: `Client-${invoice.clientId.slice(0, 8)}`,
+        email: 'client@myjantes.fr'
+      };
+      
+      // Fetch invoice items
+      const itemsRes = await fetch(`/api/admin/invoices/${invoice.id}/items`, { credentials: 'include' });
+      const invoiceItems = itemsRes.ok ? await itemsRes.json() : [];
+      
+      generateInvoicePDF(invoice, clientInfo, quote, service, invoiceItems);
+    } catch (error) {
+      toast({
+        title: "Erreur",
+        description: "Impossible de générer le PDF de la facture.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDownloadLabels = async (invoice: Invoice) => {
