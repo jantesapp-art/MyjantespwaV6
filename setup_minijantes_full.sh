@@ -1,115 +1,234 @@
 #!/bin/bash
+# 🚗 Setup complet MyJantesAppV6 — Backend + Frontend PWA
+# Auteur : ChatGPT (config Riad)
+# Objectif : Générer, builder et push le projet complet sur GitHub (déploiement Railway)
 
-echo "🚀 Installation complète : MiniJantes-v2 + Neon + GitHub + Vercel"
+echo "=============================================="
+echo "🚀 Initialisation du projet MyJantesAppV6 (PWA)"
+echo "=============================================="
 
-ZIP_FILE="MiniJantes-v2.zip"
-EXTRACT_DIR="MiniJantes-v2"
+# Dossiers de base
+mkdir -p server client
 
-# === Étape 1 : Décompression ===
-if [ -f "$ZIP_FILE" ]; then
-  echo "📦 Décompression de $ZIP_FILE ..."
-  unzip -o "$ZIP_FILE" -d "$EXTRACT_DIR" > /dev/null
-  echo "✅ Décompression terminée."
-else
-  echo "❌ Fichier $ZIP_FILE introuvable. Place-le dans ton espace Replit avant de relancer ce script."
-  exit 1
-fi
+###########################################
+# 🧠 BACKEND — Express + PostgreSQL
+###########################################
+echo "📦 Création du backend Express..."
 
-cd "$EXTRACT_DIR" || exit
-
-# === Étape 2 : Création base Neon.tech ===
-echo "🧠 Création automatique d'une base PostgreSQL Neon..."
-read -p "➡️  Entre ta clé API Neon.tech : " NEON_API_KEY
-read -p "➡️  Nom du projet Neon (ex: minijantes-db) : " PROJECT_NAME
-
-CREATE_RESPONSE=$(curl -s -X POST "https://console.neon.tech/api/v2/projects" \
-  -H "Authorization: Bearer $NEON_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d "{\"name\": \"$PROJECT_NAME\"}")
-
-DB_URL=$(echo $CREATE_RESPONSE | grep -o '"connection_uri":"[^"]*' | cut -d'"' -f4)
-
-if [ -z "$DB_URL" ]; then
-  echo "❌ Échec de création du projet Neon."
-  echo "Réponse brute : $CREATE_RESPONSE"
-  exit 1
-fi
-
-echo "✅ Base PostgreSQL créée sur Neon.tech"
-echo "🔗 URL : $DB_URL"
-
-# === Étape 3 : Création du fichier .env ===
-echo "🧩 Création du fichier .env ..."
-cat <<EOF > .env
-DATABASE_URL=$DB_URL
-DRIZZLE_DATABASE_URL=\${DATABASE_URL}
-VITE_API_BASE_URL=https://mini-jantes-backend.vercel.app
-VITE_APP_NAME=MiniJantes
-VITE_ENV=production
+cat > server/package.json <<'EOF'
+{
+  "name": "myjantesappv6-backend",
+  "version": "1.0.0",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "pg": "^8.11.5"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.0"
+  }
+}
 EOF
 
-echo "✅ .env créé."
+cat > server/db.js <<'EOF'
+import pkg from 'pg';
+const { Pool } = pkg;
 
-# === Étape 4 : Initialisation Git + GitHub ===
-echo "🔧 Initialisation Git..."
-git init -q
-git branch -M main
-git add .
-git commit -m "Initial commit MiniJantes-v2"
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
-read -p "➡️  Ton nom d'utilisateur GitHub : " GH_USER
-read -p "➡️  Nom du repo GitHub (ex: mini-jantes-v2) : " GH_REPO
+export default pool;
+EOF
 
-curl -u "$GH_USER" https://api.github.com/user/repos -d "{\"name\":\"$GH_REPO\"}" > /dev/null 2>&1
+cat > server/index.js <<'EOF'
+import express from 'express';
+import cors from 'cors';
+import dotenv from 'dotenv';
+import pool from './db.js';
 
-git remote add origin https://github.com/$GH_USER/$GH_REPO.git
-git push -u origin main
+dotenv.config();
+const app = express();
 
-echo "✅ Projet envoyé sur GitHub : https://github.com/$GH_USER/$GH_REPO"
+app.use(cors());
+app.use(express.json());
 
-# === Étape 5 : Création + déploiement sur Vercel ===
-echo "🌍 Création automatique du projet Vercel..."
-read -p "➡️  Entre ton token API Vercel : " VERCEL_TOKEN
-read -p "➡️  Nom du projet Vercel (ex: mini-jantes) : " VERCEL_PROJECT
+// Route de test
+app.get('/', (req, res) => {
+  res.send('🚗 MyJantesAppV6 API running successfully!');
+});
 
-VERCEL_RESPONSE=$(curl -s -X POST "https://api.vercel.com/v13/projects" \
-  -H "Authorization: Bearer $VERCEL_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"name\": \"$VERCEL_PROJECT\", \"framework\": \"vite\"}")
+// Exemple DB
+app.get('/api/users', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT NOW() as server_time');
+    res.json({
+      status: 'success',
+      server_time: result.rows[0].server_time,
+    });
+  } catch (err) {
+    console.error('Database error:', err);
+    res.status(500).json({ error: 'Database connection failed' });
+  }
+});
 
-VERCEL_ID=$(echo $VERCEL_RESPONSE | grep -o '"id":"[^"]*' | cut -d'"' -f4)
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`🚀 Server running on port ${PORT}`);
+});
+EOF
 
-if [ -z "$VERCEL_ID" ]; then
-  echo "❌ Erreur lors de la création du projet Vercel."
-  echo "Réponse : $VERCEL_RESPONSE"
-  exit 1
+echo "📥 Installation des dépendances backend..."
+cd server && npm install && cd ..
+
+###########################################
+# 💅 FRONTEND — React + PWA
+###########################################
+echo "🎨 Vérification du dossier client/ (frontend)..."
+
+if [ ! -f "client/package.json" ]; then
+  echo "⚙️  Création d'une app React avec Vite..."
+  npm create vite@latest client -- --template react
 fi
 
-echo "✅ Projet créé sur Vercel : $VERCEL_PROJECT"
+cd client
 
-# Lier la base Neon comme variable d’environnement sur Vercel
-curl -s -X POST "https://api.vercel.com/v9/projects/$VERCEL_PROJECT/env" \
-  -H "Authorization: Bearer $VERCEL_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"key\":\"DATABASE_URL\",\"value\":\"$DB_URL\",\"type\":\"encrypted\"}" > /dev/null
+npm install
+npm install serve
 
-echo "🔗 DATABASE_URL ajoutée aux variables d’environnement Vercel."
+echo "VITE_API_URL=https://backend.myjantesappv6.up.railway.app" > .env
 
-# Lancer le déploiement via API
-DEPLOY_RESPONSE=$(curl -s -X POST "https://api.vercel.com/v13/deployments" \
-  -H "Authorization: Bearer $VERCEL_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d "{\"name\": \"$VERCEL_PROJECT\", \"gitSource\": {\"type\": \"github\", \"repoId\": \"$GH_USER/$GH_REPO\"}}")
+# ---------------------
+# 🪶 Fichiers PWA
+# ---------------------
+mkdir -p public/icons
 
-VERCEL_URL=$(echo $DEPLOY_RESPONSE | grep -o '"url":"[^"]*' | cut -d'"' -f4)
+cat > public/manifest.json <<'EOF'
+{
+  "name": "MyJantesAppV6",
+  "short_name": "MyJantes",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#000000",
+  "description": "Application MyJantes - gestion et personnalisation de jantes automobiles",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
+EOF
 
-echo "✅ Déploiement lancé sur Vercel !"
-echo "🌐 URL (en attente de build) : https://$VERCEL_URL"
+# Génère deux icônes basiques (blanches)
+convert -size 192x192 canvas:white public/icons/icon-192.png
+convert -size 512x512 canvas:white public/icons/icon-512.png
 
-echo ""
-echo "🎯 Tout est prêt :"
-echo "   - Base PostgreSQL Neon : OK"
-echo "   - Dépôt GitHub : https://github.com/$GH_USER/$GH_REPO"
-echo "   - Déploiement Vercel : https://$VERCEL_URL"
-echo ""
-echo "🚀 Tu peux suivre le build sur ton dashboard Vercel."
+# Service Worker simple
+cat > public/service-worker.js <<'EOF'
+// service-worker.js — Mise en cache de base PWA
+const CACHE_NAME = 'myjantes-cache-v1';
+const URLS_TO_CACHE = ['/', '/index.html', '/manifest.json'];
+
+self.addEventListener('install', (event) => {
+  event.waitUntil(
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(URLS_TO_CACHE))
+  );
+});
+
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    caches.match(event.request).then((response) => response || fetch(event.request))
+  );
+});
+EOF
+
+# Enregistre le SW dans React
+cat > src/registerSW.js <<'EOF'
+export function registerSW() {
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker
+        .register('/service-worker.js')
+        .then(() => console.log('✅ Service Worker registered!'))
+        .catch((err) => console.error('SW registration failed:', err));
+    });
+  }
+}
+EOF
+
+# Modifie main.jsx pour inclure l’enregistrement
+if ! grep -q "registerSW" src/main.jsx; then
+  echo "🧩 Injection de l'enregistrement du Service Worker..."
+  sed -i "1i import { registerSW } from './registerSW';" src/main.jsx
+  echo "registerSW();" >> src/main.jsx
+fi
+
+echo "🏗️  Build du frontend React..."
+npm run build
+cd ..
+
+###########################################
+# 🚉 Railway configuration
+###########################################
+cat > railway.toml <<'EOF'
+# 🚗 MyJantesAppV6 — Configuration Railway complète
+[project]
+name = "myjantesappv6"
+
+[services.backend]
+root = "server"
+build = "npm install"
+start = "npm start"
+env = "production"
+autoDeploy = true
+port = 8080
+
+[[services.backend.plugins]]
+name = "PostgreSQL"
+
+[services.frontend]
+root = "client"
+build = "npm install && npm run build"
+start = "npx serve -s build -l 8081"
+env = "production"
+autoDeploy = true
+port = 8081
+
+[env]
+VITE_API_URL = "https://${{ services.backend.domain }}"
+NODE_ENV = "production"
+EOF
+
+###########################################
+# 🔧 Commit et push
+###########################################
+git add .
+git commit -m "🚀 Auto update: Backend + Frontend PWA MyJantesAppV6"
+git push origin main
+
+###########################################
+# ✅ Fin
+###########################################
+echo "=============================================="
+echo "✅ Projet MyJantesAppV6 PWA mis à jour sur GitHub"
+echo "💡 Va sur Railway → Redeploy Latest"
+echo "   Backend: https://backend.myjantesappv6.up.railway.app"
+echo "   Frontend: https://frontend.myjantesappv6.up.railway.app"
+echo "   PWA installable depuis le navigateur ✅"
+echo "=============================================="
